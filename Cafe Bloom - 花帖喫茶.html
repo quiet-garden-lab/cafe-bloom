@@ -1544,7 +1544,7 @@
     <header class="topbar">
       <div class="brand">
         <h1>Cafe Bloom — 花帖喫茶 —</h1>
-        <p>好きなだけ喋って、一番の重心から一輪咲かせる / v0.8.0 畑の宝物</p>
+        <p>好きなだけ喋って、一番の重心から一輪咲かせる / v0.8.1 名前を選べる</p>
       </div>
       <nav class="nav" aria-label="画面">
         <button type="button" data-nav="cafe">喫茶店</button>
@@ -1665,6 +1665,14 @@
                 <button type="button" data-app-theme="garden">宵の庭園<span class="theme-sub">紫の夜と金の飾り</span></button>
                 <button type="button" data-app-theme="diner">ルート66<span class="theme-sub">チェリーレッドとネオン</span></button>
               </div>
+            </div>
+            <div class="settings-section">
+              <h2 class="section-title">あなたの名前</h2>
+              <p class="subtle">会話であなたの発言につく名前。AIにもこの名前で伝わる。空にすると「里美」に戻る。</p>
+              <label for="userNameInput">
+                名前
+                <input id="userNameInput" type="text" spellcheck="false" maxlength="20" placeholder="里美">
+              </label>
             </div>
             <div class="settings-section">
               <h2 id="settings-title" class="section-title">設定</h2>
@@ -1830,7 +1838,7 @@
   </div>
 
   <script>
-    const APP_VERSION = "v0.8.0";
+    const APP_VERSION = "v0.8.1";
     const LS_SETTINGS = "cb_settings";
     const LS_SESSION = "cb_current_session";
     const LS_HANACHO = "cb_hanacho";
@@ -2308,6 +2316,7 @@ JSON形式:
       el.memoCount = document.getElementById("memoCount");
       el.memoList = document.getElementById("memoList");
       el.personaInput = document.getElementById("personaInput");
+      el.userNameInput = document.getElementById("userNameInput");
       el.saveSettingsButton = document.getElementById("saveSettingsButton");
       el.resetPersonaButton = document.getElementById("resetPersonaButton");
       el.exportLiteButton = document.getElementById("exportLiteButton");
@@ -2381,7 +2390,7 @@ JSON形式:
         });
       });
 
-      [el.apiKeyInput, el.modelInput, el.personaInput, el.imageModelInput, el.imageQualityInput, el.imageSizeInput, el.imageStyleInput, el.flowerMemoryCountInput, el.chatHistoryLimitInput, el.memoLimitInput].forEach((input) => {
+      [el.apiKeyInput, el.modelInput, el.userNameInput, el.personaInput, el.imageModelInput, el.imageQualityInput, el.imageSizeInput, el.imageStyleInput, el.flowerMemoryCountInput, el.chatHistoryLimitInput, el.memoLimitInput].forEach((input) => {
         input.addEventListener("input", () => {
           captureSettingsForm();
           saveSettings();
@@ -2527,7 +2536,7 @@ JSON形式:
         bubble.className = `bubble ${message.role === "user" ? "user" : "assistant"}`;
         const meta = document.createElement("span");
         meta.className = "bubble-meta";
-        meta.textContent = message.role === "user" ? "里美" : PARTNER_LABELS[state.session.partner];
+        meta.textContent = message.role === "user" ? userName() : PARTNER_LABELS[state.session.partner];
         const body = document.createElement("span");
         body.textContent = message.content;
         bubble.append(meta, body);
@@ -4086,6 +4095,7 @@ JSON形式:
       el.chatHistoryLimitInput.value = String(state.settings.chat_history_limit);
       el.memoLimitInput.value = String(state.settings.memo_limit);
       el.personaInput.value = state.settings.personas[state.settingsPersona] || DEFAULT_PERSONAS[state.settingsPersona];
+      el.userNameInput.value = state.settings.user_name || "";
       renderMemos();
     }
 
@@ -4102,6 +4112,7 @@ JSON形式:
       state.settings.chat_history_limit = clampInt(el.chatHistoryLimitInput.value, 0, 200, 0);
       state.settings.memo_limit = clampInt(el.memoLimitInput.value, 1, 300, 50);
       state.settings.personas[state.settingsPersona] = el.personaInput.value;
+      state.settings.user_name = asShortText(el.userNameInput.value);
       trimMemosToLimit();
     }
 
@@ -4447,7 +4458,7 @@ JSON形式:
         buildRecentFlowersPrompt(),
         buildMemosPrompt(),
         `現在の日時: ${formatLocalDateTimeForPrompt()}`,
-        `相手の名前: 里美`,
+        `相手の名前: ${userName()}`,
         `この会話相手: ${PARTNER_LABELS[partner]}`
       ].filter(Boolean).join("\n\n---\n\n");
     }
@@ -4896,6 +4907,7 @@ JSON形式:
       const base = defaultSettings();
       const settings = raw && typeof raw === "object" ? raw : {};
       base.theme = oneOf(settings.theme, ["classic", "garden", "diner"], "classic");
+      base.user_name = typeof settings.user_name === "string" ? asShortText(settings.user_name) : "里美";
       base.provider = settings.provider === "anthropic" ? "anthropic" : "openai";
       base.anthropic = {
         key: String(settings.anthropic && settings.anthropic.key || settings.apiKeyAnthropic || ""),
@@ -4958,6 +4970,7 @@ JSON形式:
     function defaultSettings() {
       return {
         theme: "classic",
+        user_name: "里美",
         provider: "openai",
         anthropic: { key: "", model: "" },
         openai: { key: "", model: "" },
@@ -5343,6 +5356,10 @@ JSON形式:
 
     function displayFlowerName(entry) {
       return entry.reading ? `${entry.name}（${entry.reading}）` : entry.name;
+    }
+
+    function userName() {
+      return asShortText(state.settings.user_name) || "里美";
     }
 
     function pill(text) {
