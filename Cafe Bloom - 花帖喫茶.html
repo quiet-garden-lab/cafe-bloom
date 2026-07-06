@@ -643,6 +643,16 @@
       font-weight: 600;
     }
 
+    button.garden-stat-button {
+      min-height: 0;
+      cursor: pointer;
+    }
+
+    button.garden-stat-button.is-fast {
+      color: var(--amber-soft);
+      border-color: rgba(243, 202, 122, 0.55);
+    }
+
     .garden-layout {
       display: grid;
       grid-template-columns: minmax(0, 1.15fr) minmax(230px, 0.85fr);
@@ -1127,6 +1137,7 @@
             <div class="garden-hud">
               <span class="garden-stat" id="gardenLevel">Lv.1</span>
               <span class="garden-stat" id="gardenWater">みずやり</span>
+              <button type="button" class="garden-stat garden-stat-button" id="gardenFastButton">ふつう速度</button>
             </div>
             <div class="garden-layout">
               <div id="gardenBoard" class="garden-board" role="group" aria-label="畑のマス"></div>
@@ -1426,6 +1437,7 @@ JSON形式:
     const SAFETY_MESSAGE = "今は花にするより、現実の助けにつながることを優先していい。信頼できる人、身近な相談先、緊急の窓口に連絡して。ここでは責めずに、言葉をそのまま置いておく。";
 
     let storageDb = null;
+    let lastFieldAutoRender = 0;
 
     const state = {
       settings: loadSettings(),
@@ -1458,8 +1470,12 @@ JSON形式:
       showView("cafe");
       setNotice(state.storageError || "席は空いてる。", state.storageError ? "error" : "");
       setInterval(() => {
-        if (state.currentView === "field") renderField();
-      }, 30000);
+        if (state.currentView !== "field") return;
+        if (state.garden.fast || Date.now() - lastFieldAutoRender >= 30000) {
+          lastFieldAutoRender = Date.now();
+          renderField();
+        }
+      }, 5000);
     });
 
     function collectElements() {
@@ -1493,6 +1509,7 @@ JSON形式:
       el.gardenInventory = document.getElementById("gardenInventory");
       el.gardenLevel = document.getElementById("gardenLevel");
       el.gardenWater = document.getElementById("gardenWater");
+      el.gardenFastButton = document.getElementById("gardenFastButton");
       el.apiKeyInput = document.getElementById("apiKeyInput");
       el.modelInput = document.getElementById("modelInput");
       el.toggleKeyButton = document.getElementById("toggleKeyButton");
@@ -1644,6 +1661,15 @@ JSON形式:
         saveSettings();
         renderSettings();
         setNotice("ペルソナを初期値に戻した。", "ok");
+      });
+
+      el.gardenFastButton.addEventListener("click", () => {
+        state.garden.fast = !state.garden.fast;
+        saveGarden();
+        renderField();
+        setNotice(state.garden.fast
+          ? "おためし速度にした。だいたい1分で満開になる。感覚をつかんだら戻してな。"
+          : "ふつう速度に戻した。花はゆっくり、リアル時間で育つ。", "ok");
       });
 
       el.exportLiteButton.addEventListener("click", () => exportData(false));
@@ -1994,9 +2020,17 @@ JSON形式:
       renderGardenInventory();
     }
 
+    function gardenTimes() {
+      if (state.garden.fast) {
+        return { stages: [15000, 35000, 60000], wet: 5 * 60000, refill: 30000 };
+      }
+      return { stages: GARDEN_STAGE_MS, wet: GARDEN_WET_MS, refill: GARDEN_WATER_REFILL_MS };
+    }
+
     function defaultGarden() {
       return {
         xp: 0,
+        fast: false,
         water: { charges: GARDEN_WATER_MAX, lastRefillAt: Date.now() },
         plots: Array.from({ length: GARDEN_PLOTS_TOTAL }, (_, index) => ({ id: `plot-${index}`, plant: null })),
         items: {},
@@ -2009,6 +2043,7 @@ JSON形式:
       const garden = defaultGarden();
       if (!raw || typeof raw !== "object") return garden;
       garden.xp = clampInt(raw.xp, 0, 9999999, 0);
+      garden.fast = raw.fast === true;
       if (raw.water && typeof raw.water === "object") {
         garden.water.charges = clampInt(raw.water.charges, 0, GARDEN_WATER_MAX, GARDEN_WATER_MAX);
         garden.water.lastRefillAt = Number(raw.water.lastRefillAt) || Date.now();
@@ -2082,12 +2117,13 @@ JSON形式:
       if (garden.water.charges >= GARDEN_WATER_MAX) {
         garden.water.lastRefillAt = now;
       } else {
-        const refills = Math.floor((now - garden.water.lastRefillAt) / GARDEN_WATER_REFILL_MS);
+        const refillMs = gardenTimes().refill;
+        const refills = Math.floor((now - garden.water.lastRefillAt) / refillMs);
         if (refills > 0) {
           garden.water.charges = Math.min(GARDEN_WATER_MAX, garden.water.charges + refills);
           garden.water.lastRefillAt = garden.water.charges >= GARDEN_WATER_MAX
             ? now
-            : garden.water.lastRefillAt + refills * GARDEN_WATER_REFILL_MS;
+            : garden.water.lastRefillAt + refills * refillMs;
           changed = true;
         }
       }
@@ -2106,9 +2142,10 @@ JSON形式:
     }
 
     function plantStage(plant) {
-      if (plant.progressMs >= GARDEN_STAGE_MS[2]) return 3;
-      if (plant.progressMs >= GARDEN_STAGE_MS[1]) return 2;
-      if (plant.progressMs >= GARDEN_STAGE_MS[0]) return 1;
+      const stages = gardenTimes().stages;
+      if (plant.progressMs >= stages[2]) return 3;
+      if (plant.progressMs >= stages[1]) return 2;
+      if (plant.progressMs >= stages[0]) return 1;
       return 0;
     }
 
@@ -2123,10 +2160,13 @@ JSON形式:
       const water = state.garden.water;
       let refillNote = "";
       if (water.charges < GARDEN_WATER_MAX) {
-        const remain = GARDEN_WATER_REFILL_MS - (Date.now() - water.lastRefillAt);
+        const remain = gardenTimes().refill - (Date.now() - water.lastRefillAt);
         refillNote = `（あと${formatDurationShort(remain)}で+1）`;
       }
       el.gardenWater.textContent = `みずやり ${"●".repeat(water.charges)}${"○".repeat(GARDEN_WATER_MAX - water.charges)}${refillNote}`;
+
+      el.gardenFastButton.textContent = state.garden.fast ? "おためし速度（約1分で満開）" : "ふつう速度（じっくり育つ）";
+      el.gardenFastButton.classList.toggle("is-fast", state.garden.fast);
     }
 
     function strongText(text) {
@@ -2247,14 +2287,15 @@ JSON形式:
       const stage = plantStage(plant);
       const now = Date.now();
       heading.textContent = `「${plant.name}」`;
+      const fullMs = gardenTimes().stages[2];
       container.append(paragraph(stage === 3
         ? "満開。マスを押すと収穫できる。"
-        : `いまは${GARDEN_STAGE_NAMES[stage]}。満開まで水分あと${formatDurationShort(GARDEN_STAGE_MS[2] - plant.progressMs)}ぶん。`));
+        : `いまは${GARDEN_STAGE_NAMES[stage]}。満開まで水分あと${formatDurationShort(fullMs - plant.progressMs)}ぶん。`));
 
       const bar = document.createElement("div");
       bar.className = "growth-bar";
       const fill = document.createElement("i");
-      fill.style.width = `${Math.min(100, (plant.progressMs / GARDEN_STAGE_MS[2]) * 100).toFixed(1)}%`;
+      fill.style.width = `${Math.min(100, (plant.progressMs / fullMs) * 100).toFixed(1)}%`;
       bar.append(fill);
       container.append(bar);
 
@@ -2389,7 +2430,7 @@ JSON形式:
       }
       if (water.charges >= GARDEN_WATER_MAX) water.lastRefillAt = Date.now();
       water.charges -= 1;
-      plant.wetUntil = Date.now() + GARDEN_WET_MS;
+      plant.wetUntil = Date.now() + gardenTimes().wet;
       plant.lastTickAt = Date.now();
       addGardenXp(1);
       saveGarden();
