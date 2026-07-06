@@ -1417,6 +1417,10 @@
                 <button type="button" id="deleteAllButton" class="danger">全データ削除</button>
               </div>
               <p class="subtle">書き出しJSONにはAPIキーを入れない。画像込みはファイルが大きくなることがある。</p>
+              <div class="row">
+                <button type="button" id="reloadButton">最新版に更新（再読み込み）</button>
+              </div>
+              <p class="subtle">ホーム画面から開いている時も、ここからページを読み直せる。データは消えない。</p>
             </div>
           </div>
         </div>
@@ -1727,6 +1731,7 @@ JSON形式:
       el.exportFullButton = document.getElementById("exportFullButton");
       el.importInput = document.getElementById("importInput");
       el.deleteAllButton = document.getElementById("deleteAllButton");
+      el.reloadButton = document.getElementById("reloadButton");
     }
 
     function bindEvents() {
@@ -1870,6 +1875,9 @@ JSON形式:
       el.exportFullButton.addEventListener("click", () => exportData(true));
       el.importInput.addEventListener("change", importData);
       el.deleteAllButton.addEventListener("click", deleteAllData);
+      el.reloadButton.addEventListener("click", () => {
+        window.location.reload();
+      });
     }
 
     function renderAll() {
