@@ -233,6 +233,39 @@
       }
     }
 
+    .toast {
+      position: fixed;
+      left: 50%;
+      bottom: calc(18px + env(safe-area-inset-bottom));
+      transform: translateX(-50%) translateY(10px);
+      max-width: min(92vw, 520px);
+      padding: 11px 16px;
+      border: 1px solid rgba(215, 155, 70, 0.4);
+      border-radius: var(--radius);
+      color: var(--ink);
+      background: rgba(36, 24, 18, 0.94);
+      box-shadow: 0 12px 32px rgba(0, 0, 0, 0.45);
+      line-height: 1.6;
+      white-space: pre-wrap;
+      opacity: 0;
+      transition: opacity 0.25s ease, transform 0.25s ease;
+      pointer-events: none;
+      z-index: 80;
+    }
+
+    .toast.is-visible {
+      opacity: 1;
+      transform: translateX(-50%) translateY(0);
+    }
+
+    .toast.is-error {
+      color: var(--error);
+    }
+
+    .toast.is-ok {
+      color: var(--ok);
+    }
+
     .screen {
       display: none;
     }
@@ -1165,6 +1198,7 @@
     </header>
 
     <div id="notice" class="notice" role="status" aria-live="polite"></div>
+    <div id="toast" class="toast" aria-hidden="true"></div>
 
     <main>
       <section id="screen-cafe" class="screen is-active" aria-labelledby="cafe-title">
@@ -1677,6 +1711,7 @@ JSON形式:
 
     function collectElements() {
       el.notice = document.getElementById("notice");
+      el.toast = document.getElementById("toast");
       el.screens = {
         cafe: document.getElementById("screen-cafe"),
         book: document.getElementById("screen-book"),
@@ -4515,6 +4550,29 @@ JSON形式:
       el.notice.classList.toggle("is-error", kind === "error");
       el.notice.classList.toggle("is-ok", kind === "ok");
       el.notice.classList.toggle("is-loading", kind === "loading");
+      showToast(message, kind);
+    }
+
+    let toastTimer = null;
+    function showToast(message, kind) {
+      if (!el.toast) return;
+      if (toastTimer) {
+        clearTimeout(toastTimer);
+        toastTimer = null;
+      }
+      if (!message) {
+        el.toast.classList.remove("is-visible");
+        return;
+      }
+      el.toast.textContent = message;
+      el.toast.classList.toggle("is-error", kind === "error");
+      el.toast.classList.toggle("is-ok", kind === "ok");
+      el.toast.classList.add("is-visible");
+      if (kind === "loading") return;
+      toastTimer = setTimeout(() => {
+        el.toast.classList.remove("is-visible");
+        toastTimer = null;
+      }, 4200);
     }
 
     function formatApiError(error) {
