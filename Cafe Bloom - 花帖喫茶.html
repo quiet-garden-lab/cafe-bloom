@@ -669,9 +669,9 @@
 
     .garden-board {
       display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 12px;
-      padding: 16px;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 8px;
+      padding: 12px;
       border-radius: 12px;
       border: 1px solid rgba(145, 168, 115, 0.36);
       background:
@@ -745,33 +745,104 @@
 
     .tile .tile-hint {
       color: rgba(255, 242, 215, 0.45);
-      font-size: 24px;
+      font-size: 19px;
       line-height: 1;
     }
 
     .tile.is-locked .tile-hint {
-      font-size: 13px;
+      font-size: 11px;
     }
 
     .tile .tile-badge {
       position: absolute;
-      top: 6px;
-      right: 6px;
-      padding: 2px 7px;
+      top: 3px;
+      right: 3px;
+      padding: 1px 6px;
       border-radius: 999px;
       background: rgba(24, 18, 13, 0.72);
       border: 1px solid rgba(243, 202, 122, 0.5);
       color: var(--amber-soft);
-      font-size: 10px;
+      font-size: 9px;
       letter-spacing: 1px;
     }
 
     .tile .tile-wet-mark {
       position: absolute;
-      top: 6px;
-      left: 8px;
+      top: 3px;
+      left: 6px;
       color: rgba(160, 200, 230, 0.8);
+      font-size: 10px;
+    }
+
+    .grass-cell {
+      aspect-ratio: 1;
+      min-height: 0;
+      padding: 3px;
+      display: grid;
+      place-items: center;
+      border-radius: 8px;
+      border: 1px dashed transparent;
+      background: transparent;
+      box-shadow: none;
+      transition: background 140ms ease, border-color 140ms ease;
+    }
+
+    .grass-cell:hover {
+      background: rgba(207, 230, 168, 0.09);
+      border-color: rgba(207, 230, 168, 0.35);
+    }
+
+    .grass-cell.is-selected {
+      outline: 2px solid var(--amber-soft);
+      outline-offset: 1px;
+    }
+
+    .grass-cell svg {
+      width: 94%;
+      height: 94%;
+      pointer-events: none;
+    }
+
+    .shop-list {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .shop-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 8px;
+      border: 1px solid rgba(255, 242, 215, 0.1);
+      border-radius: 8px;
+      background: rgba(255, 255, 255, 0.03);
+    }
+
+    .shop-item > svg {
+      width: 44px;
+      height: 44px;
+      flex: none;
+    }
+
+    .shop-info {
+      flex: 1;
+      min-width: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .shop-info .shop-owned {
       font-size: 11px;
+      color: var(--ok);
+    }
+
+    .shop-item button {
+      min-height: 34px;
+      padding: 5px 12px;
+      font-size: 13px;
+      flex: none;
     }
 
     .garden-side {
@@ -1050,7 +1121,7 @@
     <header class="topbar">
       <div class="brand">
         <h1>Cafe Bloom — 花帖喫茶 —</h1>
-        <p>好きなだけ喋って、一番の重心から一輪咲かせる / v0.2.0 花畑</p>
+        <p>好きなだけ喋って、一番の重心から一輪咲かせる / v0.3.0 マスターの棚</p>
       </div>
       <nav class="nav" aria-label="画面">
         <button type="button" data-nav="cafe">喫茶店</button>
@@ -1146,7 +1217,11 @@
                 <div class="garden-card">
                   <h3>ポケット</h3>
                   <div id="gardenInventory" class="inventory-grid"></div>
-                  <p class="subtle">集めたものは、いずれマスターの棚で畑の飾りと交換できる（準備中）。</p>
+                </div>
+                <div class="garden-card">
+                  <h3>マスターの棚</h3>
+                  <p class="subtle">集めた花びらや蜜を、畑の飾りと交換してくれる。飾りは畑のまわりの草地に置ける。</p>
+                  <div id="gardenShelf" class="shop-list"></div>
                 </div>
               </div>
             </div>
@@ -1317,7 +1392,7 @@
   </div>
 
   <script>
-    const APP_VERSION = "v0.2.0";
+    const APP_VERSION = "v0.3.0";
     const LS_SETTINGS = "cb_settings";
     const LS_SESSION = "cb_current_session";
     const LS_HANACHO = "cb_hanacho";
@@ -1347,6 +1422,91 @@
       petal_shirogane: { name: "しろがね花びら", color: "#d9d5c9" },
       mitsu: { name: "花の蜜", color: "#e8a33c", kind: "drop" },
       shizuku: { name: "ひかりの雫", color: "#bfe3f2", kind: "drop" }
+    };
+    const GARDEN_DECOS = {
+      komichi: {
+        name: "こみち石",
+        flavor: "ふむと少しだけ音がする、平たい石。",
+        cost: { petals: 2 },
+        svg: `<svg viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+          <ellipse cx="42" cy="52" rx="24" ry="14" fill="#8f8577" stroke="#5f574b" stroke-width="2"/>
+          <ellipse cx="80" cy="76" rx="21" ry="12" fill="#9c9284" stroke="#5f574b" stroke-width="2"/>
+          <ellipse cx="46" cy="92" rx="16" ry="9" fill="#877d6f" stroke="#5f574b" stroke-width="2"/>
+        </svg>`
+      },
+      saku: {
+        name: "白い柵",
+        flavor: "ペンキ塗りたてみたいな、小さな木の柵。",
+        cost: { petals: 3 },
+        svg: `<svg viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+          <g fill="#e8dfc8" stroke="#a89a7c" stroke-width="2">
+            <path d="M24 46 L32 38 L40 46 L40 96 L24 96 Z"/>
+            <path d="M52 42 L60 34 L68 42 L68 96 L52 96 Z"/>
+            <path d="M80 46 L88 38 L96 46 L96 96 L80 96 Z"/>
+            <rect x="16" y="56" width="88" height="9" rx="3"/>
+            <rect x="16" y="76" width="88" height="9" rx="3"/>
+          </g>
+        </svg>`
+      },
+      lantern: {
+        name: "庭ランタン",
+        flavor: "夜のあいだ、花たちの寝顔を照らす。",
+        cost: { petals: 4, mitsu: 1 },
+        svg: `<svg viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+          <circle cx="60" cy="42" r="26" fill="#f3ca7a" opacity="0.22"/>
+          <rect x="56" y="58" width="8" height="44" rx="3" fill="#5d4526"/>
+          <ellipse cx="60" cy="104" rx="18" ry="6" fill="#3a2a18"/>
+          <path d="M46 30 L74 30 L70 58 L50 58 Z" fill="#8a6b43" stroke="#5d4526" stroke-width="2"/>
+          <rect x="50" y="34" width="20" height="18" rx="3" fill="#ffe9b0" stroke="#b7954c" stroke-width="1.5"/>
+          <circle cx="60" cy="43" r="5" fill="#f3ca7a"/>
+          <rect x="52" y="24" width="16" height="7" rx="3" fill="#5d4526"/>
+        </svg>`
+      },
+      bench: {
+        name: "木のベンチ",
+        flavor: "二人ぶんの幅がある。片方は花のぶん。",
+        cost: { petals: 6, mitsu: 1 },
+        svg: `<svg viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+          <g fill="#8a6b43" stroke="#5d4526" stroke-width="2">
+            <rect x="18" y="38" width="84" height="10" rx="4"/>
+            <rect x="18" y="54" width="84" height="10" rx="4"/>
+            <rect x="14" y="70" width="92" height="12" rx="5"/>
+            <rect x="22" y="82" width="9" height="22" rx="3"/>
+            <rect x="89" y="82" width="9" height="22" rx="3"/>
+          </g>
+        </svg>`
+      },
+      ike: {
+        name: "小さな池",
+        flavor: "空の色をうつして、日ごと表情が変わる。",
+        cost: { petals: 5, mitsu: 2 },
+        svg: `<svg viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+          <ellipse cx="60" cy="66" rx="44" ry="28" fill="#57738c" stroke="#3c5063" stroke-width="3"/>
+          <ellipse cx="60" cy="63" rx="36" ry="21" fill="#6f95c9" opacity="0.85"/>
+          <path d="M34 60 Q46 55 58 60 T82 60" fill="none" stroke="#bcd4f0" stroke-width="2.4" stroke-linecap="round" opacity="0.7"/>
+          <ellipse cx="76" cy="52" rx="11" ry="6" fill="#849760" stroke="#6f8753" stroke-width="1.5"/>
+          <circle cx="73" cy="50" r="2.6" fill="#f2b7d8"/>
+        </svg>`
+      },
+      arch: {
+        name: "花のアーチ",
+        flavor: "くぐると、いい話が一つ増えるらしい。",
+        cost: { petals: 8, mitsu: 2, shizuku: 1 },
+        svg: `<svg viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+          <path d="M26 104 L26 52 Q26 18 60 18 Q94 18 94 52 L94 104" fill="none" stroke="#8a6b43" stroke-width="9" stroke-linecap="round"/>
+          <path d="M26 104 L26 52 Q26 18 60 18 Q94 18 94 52 L94 104" fill="none" stroke="#6f8753" stroke-width="4" stroke-linecap="round" stroke-dasharray="9 13"/>
+          <g stroke="#b7954c" stroke-width="0.8">
+            <circle cx="27" cy="70" r="5.5" fill="#f2b7d8"/>
+            <circle cx="31" cy="40" r="5.5" fill="#c9a3f5"/>
+            <circle cx="46" cy="22" r="5.5" fill="#ffd9a0"/>
+            <circle cx="74" cy="22" r="5.5" fill="#f2b7d8"/>
+            <circle cx="89" cy="40" r="5.5" fill="#ffd9a0"/>
+            <circle cx="93" cy="70" r="5.5" fill="#c9a3f5"/>
+            <circle cx="93" cy="92" r="5.5" fill="#f2b7d8"/>
+            <circle cx="27" cy="92" r="5.5" fill="#ffd9a0"/>
+          </g>
+        </svg>`
+      }
     };
     const EXIT_BUTTON_LABEL = "新しい席につく";
     const EXIT_CONFIRM_TEXT = "今の会話を捨てて、新しい席につく？ 花にはしない。";
@@ -1510,6 +1670,7 @@ JSON形式:
       el.gardenLevel = document.getElementById("gardenLevel");
       el.gardenWater = document.getElementById("gardenWater");
       el.gardenFastButton = document.getElementById("gardenFastButton");
+      el.gardenShelf = document.getElementById("gardenShelf");
       el.apiKeyInput = document.getElementById("apiKeyInput");
       el.modelInput = document.getElementById("modelInput");
       el.toggleKeyButton = document.getElementById("toggleKeyButton");
@@ -2018,6 +2179,7 @@ JSON形式:
       renderGardenBoard();
       renderGardenDetail();
       renderGardenInventory();
+      renderGardenShelf();
     }
 
     function gardenTimes() {
@@ -2035,7 +2197,9 @@ JSON形式:
         plots: Array.from({ length: GARDEN_PLOTS_TOTAL }, (_, index) => ({ id: `plot-${index}`, plant: null })),
         items: {},
         seeds: {},
-        divided: []
+        divided: [],
+        decoOwned: {},
+        decoPlaced: {}
       };
     }
 
@@ -2074,6 +2238,19 @@ JSON形式:
         });
       }
       if (Array.isArray(raw.divided)) garden.divided = raw.divided.map(String);
+      if (raw.decoOwned && typeof raw.decoOwned === "object") {
+        Object.keys(GARDEN_DECOS).forEach((key) => {
+          const count = clampInt(raw.decoOwned[key], 0, 999, 0);
+          if (count) garden.decoOwned[key] = count;
+        });
+      }
+      if (raw.decoPlaced && typeof raw.decoPlaced === "object") {
+        Object.entries(raw.decoPlaced).forEach(([cellId, key]) => {
+          if (/^deco-([0-9]|1[0-5])$/.test(cellId) && GARDEN_DECOS[key]) {
+            garden.decoPlaced[cellId] = key;
+          }
+        });
+      }
       return garden;
     }
 
@@ -2187,40 +2364,73 @@ JSON形式:
       el.gardenBoard.textContent = "";
       const unlocked = unlockedPlotCount();
       const now = Date.now();
-      state.garden.plots.forEach((plot, index) => {
-        const tile = document.createElement("button");
-        tile.type = "button";
-        tile.className = "tile";
-        const locked = index >= unlocked;
-        if (locked) {
-          tile.classList.add("is-locked");
-          tile.innerHTML = `<span class="tile-hint">Lv.${index - GARDEN_BASE_PLOTS + 2}</span>`;
-          tile.setAttribute("aria-label", `未開放の区画。レベル${index - GARDEN_BASE_PLOTS + 2}で使える`);
-        } else if (!plot.plant) {
-          tile.innerHTML = `<span class="tile-hint">＋</span>`;
-          tile.setAttribute("aria-label", "空いた区画。押すと植えるものを選べる");
-        } else {
-          const plant = plot.plant;
-          const stage = plantStage(plant);
-          if (now < plant.wetUntil) {
-            tile.classList.add("is-wet");
-            tile.innerHTML = `<span class="tile-wet-mark">〜</span>`;
+      let decoIndex = 0;
+      for (let row = 0; row < 5; row += 1) {
+        for (let col = 0; col < 5; col += 1) {
+          if (row >= 1 && row <= 3 && col >= 1 && col <= 3) {
+            const plotIndex = (row - 1) * 3 + (col - 1);
+            el.gardenBoard.append(plotTileElement(state.garden.plots[plotIndex], plotIndex, unlocked, now));
+          } else {
+            el.gardenBoard.append(grassCellElement(decoIndex));
+            decoIndex += 1;
           }
-          if (stage === 3) tile.classList.add("is-bloom");
-          tile.innerHTML += gardenStageSvg(plant, stage) + (stage === 3 ? `<span class="tile-badge">収穫</span>` : "");
-          tile.setAttribute("aria-label", `「${plant.name}」 ${GARDEN_STAGE_NAMES[stage]}`);
         }
-        if (plot.id === state.gardenSelectedPlot) tile.classList.add("is-selected");
-        tile.addEventListener("click", () => {
-          state.gardenSelectedPlot = plot.id;
-          if (!locked && plot.plant && plantStage(plot.plant) === 3) {
-            harvestPlot(plot);
-            return;
-          }
-          renderField();
-        });
-        el.gardenBoard.append(tile);
+      }
+    }
+
+    function plotTileElement(plot, index, unlocked, now) {
+      const tile = document.createElement("button");
+      tile.type = "button";
+      tile.className = "tile";
+      const locked = index >= unlocked;
+      if (locked) {
+        tile.classList.add("is-locked");
+        tile.innerHTML = `<span class="tile-hint">Lv.${index - GARDEN_BASE_PLOTS + 2}</span>`;
+        tile.setAttribute("aria-label", `未開放の区画。レベル${index - GARDEN_BASE_PLOTS + 2}で使える`);
+      } else if (!plot.plant) {
+        tile.innerHTML = `<span class="tile-hint">＋</span>`;
+        tile.setAttribute("aria-label", "空いた区画。押すと植えるものを選べる");
+      } else {
+        const plant = plot.plant;
+        const stage = plantStage(plant);
+        if (now < plant.wetUntil) {
+          tile.classList.add("is-wet");
+          tile.innerHTML = `<span class="tile-wet-mark">〜</span>`;
+        }
+        if (stage === 3) tile.classList.add("is-bloom");
+        tile.innerHTML += gardenStageSvg(plant, stage) + (stage === 3 ? `<span class="tile-badge">収穫</span>` : "");
+        tile.setAttribute("aria-label", `「${plant.name}」 ${GARDEN_STAGE_NAMES[stage]}`);
+      }
+      if (plot.id === state.gardenSelectedPlot) tile.classList.add("is-selected");
+      tile.addEventListener("click", () => {
+        state.gardenSelectedPlot = plot.id;
+        if (!locked && plot.plant && plantStage(plot.plant) === 3) {
+          harvestPlot(plot);
+          return;
+        }
+        renderField();
       });
+      return tile;
+    }
+
+    function grassCellElement(decoIndex) {
+      const cellId = `deco-${decoIndex}`;
+      const cell = document.createElement("button");
+      cell.type = "button";
+      cell.className = "grass-cell";
+      const key = state.garden.decoPlaced[cellId];
+      if (key && GARDEN_DECOS[key]) {
+        cell.innerHTML = GARDEN_DECOS[key].svg;
+        cell.setAttribute("aria-label", `飾り「${GARDEN_DECOS[key].name}」`);
+      } else {
+        cell.setAttribute("aria-label", "飾りを置ける草地");
+      }
+      if (cellId === state.gardenSelectedPlot) cell.classList.add("is-selected");
+      cell.addEventListener("click", () => {
+        state.gardenSelectedPlot = cellId;
+        renderField();
+      });
+      return cell;
     }
 
     function gardenStageSvg(plant, stage) {
@@ -2259,6 +2469,11 @@ JSON形式:
       container.textContent = "";
       const heading = document.createElement("h3");
       container.append(heading);
+      if (typeof state.gardenSelectedPlot === "string" && state.gardenSelectedPlot.startsWith("deco-")) {
+        renderDecoDetail(container, heading, state.gardenSelectedPlot);
+        return;
+      }
+
       const index = state.garden.plots.findIndex((plot) => plot.id === state.gardenSelectedPlot);
       const plot = index >= 0 ? state.garden.plots[index] : null;
 
@@ -2341,6 +2556,140 @@ JSON形式:
       const p = document.createElement("p");
       p.textContent = text;
       return p;
+    }
+
+    function renderDecoDetail(container, heading, cellId) {
+      const placedKey = state.garden.decoPlaced[cellId];
+      if (placedKey && GARDEN_DECOS[placedKey]) {
+        const deco = GARDEN_DECOS[placedKey];
+        heading.textContent = `「${deco.name}」`;
+        container.append(paragraph(deco.flavor));
+        const actions = document.createElement("div");
+        actions.className = "garden-actions";
+        const removeButton = document.createElement("button");
+        removeButton.type = "button";
+        removeButton.textContent = "ポケットにしまう";
+        removeButton.addEventListener("click", () => removeDeco(cellId));
+        actions.append(removeButton);
+        container.append(actions);
+        return;
+      }
+
+      heading.textContent = "飾りを置く";
+      const owned = Object.entries(state.garden.decoOwned).filter(([, count]) => count > 0);
+      if (!owned.length) {
+        container.append(paragraph("置ける飾りがまだない。マスターの棚で花びらや蜜と交換できる。"));
+        return;
+      }
+      const list = document.createElement("div");
+      list.className = "picker-list";
+      owned.forEach(([key, count]) => {
+        const deco = GARDEN_DECOS[key];
+        if (!deco) return;
+        const item = document.createElement("button");
+        item.type = "button";
+        item.className = "picker-item";
+        item.innerHTML = `${deco.svg}<span><span class="picker-name">${escapeHtml(deco.name)}</span><span class="picker-sub">持ってる×${count}</span></span>`;
+        item.addEventListener("click", () => placeDeco(cellId, key));
+        list.append(item);
+      });
+      container.append(list);
+    }
+
+    function placeDeco(cellId, key) {
+      const owned = state.garden.decoOwned[key] || 0;
+      if (!owned || state.garden.decoPlaced[cellId] || !GARDEN_DECOS[key]) return;
+      state.garden.decoOwned[key] = owned - 1;
+      if (!state.garden.decoOwned[key]) delete state.garden.decoOwned[key];
+      state.garden.decoPlaced[cellId] = key;
+      addGardenXp(2);
+      saveGarden();
+      renderField();
+      setNotice(`「${GARDEN_DECOS[key].name}」を畑に置いた。`, "ok");
+    }
+
+    function removeDeco(cellId) {
+      const key = state.garden.decoPlaced[cellId];
+      if (!key) return;
+      delete state.garden.decoPlaced[cellId];
+      state.garden.decoOwned[key] = (state.garden.decoOwned[key] || 0) + 1;
+      saveGarden();
+      renderField();
+      setNotice(`「${GARDEN_DECOS[key].name}」をポケットにしまった。`, "ok");
+    }
+
+    function renderGardenShelf() {
+      el.gardenShelf.textContent = "";
+      Object.entries(GARDEN_DECOS).forEach(([key, deco]) => {
+        const item = document.createElement("div");
+        item.className = "shop-item";
+        const ownedCount = (state.garden.decoOwned[key] || 0) + placedDecoCount(key);
+        item.innerHTML = `${deco.svg}<div class="shop-info"><span class="picker-name">${escapeHtml(deco.name)}</span><span class="picker-sub">${escapeHtml(costLabel(deco.cost))}</span>${ownedCount ? `<span class="shop-owned">持ってる×${ownedCount}</span>` : ""}</div>`;
+        const button = document.createElement("button");
+        button.type = "button";
+        button.textContent = "交換";
+        button.disabled = !canAffordCost(deco.cost);
+        button.addEventListener("click", () => exchangeDeco(key));
+        item.append(button);
+        el.gardenShelf.append(item);
+      });
+    }
+
+    function placedDecoCount(key) {
+      return Object.values(state.garden.decoPlaced).filter((placed) => placed === key).length;
+    }
+
+    function costLabel(cost) {
+      const parts = [];
+      if (cost.petals) parts.push(`花びら×${cost.petals}`);
+      if (cost.mitsu) parts.push(`花の蜜×${cost.mitsu}`);
+      if (cost.shizuku) parts.push(`ひかりの雫×${cost.shizuku}`);
+      return parts.join("　");
+    }
+
+    function totalPetalCount() {
+      return Object.entries(state.garden.items)
+        .filter(([key]) => key.startsWith("petal_"))
+        .reduce((sum, [, count]) => sum + count, 0);
+    }
+
+    function canAffordCost(cost) {
+      if ((cost.petals || 0) > totalPetalCount()) return false;
+      if ((cost.mitsu || 0) > (state.garden.items.mitsu || 0)) return false;
+      if ((cost.shizuku || 0) > (state.garden.items.shizuku || 0)) return false;
+      return true;
+    }
+
+    function payCost(cost) {
+      let petalsNeeded = cost.petals || 0;
+      while (petalsNeeded > 0) {
+        const richest = Object.entries(state.garden.items)
+          .filter(([key, count]) => key.startsWith("petal_") && count > 0)
+          .sort((a, b) => b[1] - a[1])[0];
+        if (!richest) break;
+        const take = Math.min(richest[1], petalsNeeded);
+        state.garden.items[richest[0]] -= take;
+        if (!state.garden.items[richest[0]]) delete state.garden.items[richest[0]];
+        petalsNeeded -= take;
+      }
+      if (cost.mitsu) {
+        state.garden.items.mitsu -= cost.mitsu;
+        if (!state.garden.items.mitsu) delete state.garden.items.mitsu;
+      }
+      if (cost.shizuku) {
+        state.garden.items.shizuku -= cost.shizuku;
+        if (!state.garden.items.shizuku) delete state.garden.items.shizuku;
+      }
+    }
+
+    function exchangeDeco(key) {
+      const deco = GARDEN_DECOS[key];
+      if (!deco || !canAffordCost(deco.cost)) return;
+      payCost(deco.cost);
+      state.garden.decoOwned[key] = (state.garden.decoOwned[key] || 0) + 1;
+      saveGarden();
+      renderField();
+      setNotice(`マスターの棚で「${deco.name}」と交換した。畑のまわりの草地に置ける。`, "ok");
     }
 
     function renderPlantPicker(container, plot) {
