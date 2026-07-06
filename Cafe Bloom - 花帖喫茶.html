@@ -775,6 +775,7 @@
     }
 
     .grass-cell {
+      position: relative;
       aspect-ratio: 1;
       min-height: 0;
       padding: 3px;
@@ -801,6 +802,30 @@
       width: 94%;
       height: 94%;
       pointer-events: none;
+    }
+
+    .grass-cell .cat-sprite {
+      position: absolute;
+      inset: 4%;
+      display: grid;
+      place-items: center;
+      pointer-events: none;
+      animation: catBob 3.2s ease-in-out infinite;
+    }
+
+    .grass-cell .cat-sprite svg {
+      width: 86%;
+      height: 86%;
+      filter: drop-shadow(0 3px 4px rgba(0, 0, 0, 0.35));
+    }
+
+    @keyframes catBob {
+      0%, 100% {
+        transform: translateY(0);
+      }
+      50% {
+        transform: translateY(-3px);
+      }
     }
 
     .shop-list {
@@ -1121,7 +1146,7 @@
     <header class="topbar">
       <div class="brand">
         <h1>Cafe Bloom — 花帖喫茶 —</h1>
-        <p>好きなだけ喋って、一番の重心から一輪咲かせる / v0.3.0 マスターの棚</p>
+        <p>好きなだけ喋って、一番の重心から一輪咲かせる / v0.4.0 畑の猫</p>
       </div>
       <nav class="nav" aria-label="画面">
         <button type="button" data-nav="cafe">喫茶店</button>
@@ -1392,7 +1417,7 @@
   </div>
 
   <script>
-    const APP_VERSION = "v0.3.0";
+    const APP_VERSION = "v0.4.0";
     const LS_SETTINGS = "cb_settings";
     const LS_SESSION = "cb_current_session";
     const LS_HANACHO = "cb_hanacho";
@@ -2184,10 +2209,38 @@ JSON形式:
 
     function gardenTimes() {
       if (state.garden.fast) {
-        return { stages: [15000, 35000, 60000], wet: 5 * 60000, refill: 30000 };
+        return {
+          stages: [15000, 35000, 60000],
+          wet: 5 * 60000,
+          refill: 30000,
+          catVisitMin: 30000,
+          catVisitMax: 90000,
+          catStay: 150000,
+          catFeedExtend: 90000,
+          catGiftMin: 90000,
+          catGiftMax: 180000,
+          catMove: 25000
+        };
       }
-      return { stages: GARDEN_STAGE_MS, wet: GARDEN_WET_MS, refill: GARDEN_WATER_REFILL_MS };
+      return {
+        stages: GARDEN_STAGE_MS,
+        wet: GARDEN_WET_MS,
+        refill: GARDEN_WATER_REFILL_MS,
+        catVisitMin: 2 * 3600000,
+        catVisitMax: 6 * 3600000,
+        catStay: 3600000,
+        catFeedExtend: 30 * 60000,
+        catGiftMin: 4 * 3600000,
+        catGiftMax: 8 * 3600000,
+        catMove: 10 * 60000
+      };
     }
+
+    const CAT_COATS = {
+      mike: { label: "三毛猫", base: "#efe6d8", patch1: "#d78d4a", patch2: "#4a423c", nose: "#d98f8a" },
+      kuro: { label: "黒猫", base: "#3d3a3e", patch1: "#3d3a3e", patch2: "#332f33", nose: "#8a6b6e" },
+      chatora: { label: "茶トラ猫", base: "#dc9a55", patch1: "#c07f3c", patch2: "#c07f3c", nose: "#d98f8a" }
+    };
 
     function defaultGarden() {
       return {
@@ -2199,7 +2252,12 @@ JSON形式:
         seeds: {},
         divided: [],
         decoOwned: {},
-        decoPlaced: {}
+        decoPlaced: {},
+        cat: null,
+        catCoat: "",
+        catName: "",
+        catFriendship: 0,
+        catNextVisitAt: 0
       };
     }
 
@@ -2250,6 +2308,18 @@ JSON形式:
             garden.decoPlaced[cellId] = key;
           }
         });
+      }
+      garden.catCoat = CAT_COATS[raw.catCoat] ? raw.catCoat : "";
+      garden.catName = asShortText(raw.catName) || "";
+      garden.catFriendship = clampInt(raw.catFriendship, 0, 999, 0);
+      garden.catNextVisitAt = Number(raw.catNextVisitAt) || 0;
+      if (raw.cat && typeof raw.cat === "object" && /^deco-([0-9]|1[0-5])$/.test(String(raw.cat.cellId))) {
+        garden.cat = {
+          cellId: String(raw.cat.cellId),
+          leaveAt: Number(raw.cat.leaveAt) || 0,
+          moveAt: Number(raw.cat.moveAt) || 0,
+          giftAt: Number(raw.cat.giftAt) || 0
+        };
       }
       return garden;
     }
@@ -2315,7 +2385,93 @@ JSON形式:
         plant.lastTickAt = now;
         if (plantStage(plant) !== stageBefore) changed = true;
       });
+      if (tickCat(now)) changed = true;
       if (changed) saveGarden();
+    }
+
+    function tickCat(now) {
+      const garden = state.garden;
+      const times = gardenTimes();
+      const resident = garden.catFriendship >= 3;
+      let changed = false;
+
+      if (!garden.cat) {
+        const gardenHasLife = garden.plots.some((plot) => plot.plant) || Object.keys(garden.decoPlaced).length > 0;
+        if (!gardenHasLife) return false;
+        if (!garden.catNextVisitAt) {
+          garden.catNextVisitAt = now + randBetween(times.catVisitMin, times.catVisitMax);
+          return true;
+        }
+        if (now >= garden.catNextVisitAt || resident) {
+          if (!garden.catCoat) {
+            const coats = Object.keys(CAT_COATS);
+            garden.catCoat = coats[Math.floor(Math.random() * coats.length)];
+          }
+          garden.cat = {
+            cellId: pickCatCell(),
+            leaveAt: resident ? 0 : now + times.catStay,
+            moveAt: now + times.catMove,
+            giftAt: resident ? now + randBetween(times.catGiftMin, times.catGiftMax) : 0
+          };
+          setNotice(resident
+            ? `${catDisplayName()}が畑に出てきた。`
+            : `${CAT_COATS[garden.catCoat].label}が畑に遊びに来てる。`, "ok");
+          return true;
+        }
+        return false;
+      }
+
+      const cat = garden.cat;
+      if (!resident && cat.leaveAt && now >= cat.leaveAt) {
+        garden.cat = null;
+        garden.catNextVisitAt = now + randBetween(times.catVisitMin, times.catVisitMax);
+        if (state.gardenSelectedPlot === "cat") state.gardenSelectedPlot = null;
+        setNotice("猫はどこかへ帰っていった。また来てくれるといい。", "");
+        return true;
+      }
+      if (now >= cat.moveAt) {
+        cat.cellId = pickCatCell(cat.cellId);
+        cat.moveAt = now + gardenTimes().catMove;
+        changed = true;
+      }
+      if (resident && cat.giftAt && now >= cat.giftAt) {
+        const gift = rollCatGift();
+        cat.giftAt = now + randBetween(times.catGiftMin, times.catGiftMax);
+        setNotice(`${catDisplayName()}が${gift}を拾ってきた。`, "ok");
+        changed = true;
+      }
+      return changed;
+    }
+
+    function randBetween(min, max) {
+      return min + Math.floor(Math.random() * Math.max(1, max - min));
+    }
+
+    function pickCatCell(exclude) {
+      const all = Array.from({ length: 16 }, (_, index) => `deco-${index}`);
+      const empty = all.filter((cellId) => !state.garden.decoPlaced[cellId] && cellId !== exclude);
+      const pool = empty.length ? empty : all.filter((cellId) => cellId !== exclude);
+      return pool[Math.floor(Math.random() * pool.length)] || "deco-0";
+    }
+
+    function rollCatGift() {
+      const roll = Math.random();
+      if (roll < 0.06) {
+        addGardenItem("shizuku", 1);
+        return "ひかりの雫×1";
+      }
+      if (roll < 0.34) {
+        addGardenItem("mitsu", 1);
+        return "花の蜜×1";
+      }
+      const petalKeys = Object.keys(GARDEN_ITEMS).filter((key) => key.startsWith("petal_"));
+      const key = petalKeys[Math.floor(Math.random() * petalKeys.length)];
+      addGardenItem(key, 1);
+      return `${GARDEN_ITEMS[key].name}×1`;
+    }
+
+    function catDisplayName() {
+      return state.garden.catName || (state.garden.catCoat ? CAT_COATS[state.garden.catCoat].label : "猫");
     }
 
     function plantStage(plant) {
@@ -2419,18 +2575,47 @@ JSON形式:
       cell.type = "button";
       cell.className = "grass-cell";
       const key = state.garden.decoPlaced[cellId];
+      const catHere = state.garden.cat && state.garden.cat.cellId === cellId;
       if (key && GARDEN_DECOS[key]) {
         cell.innerHTML = GARDEN_DECOS[key].svg;
         cell.setAttribute("aria-label", `飾り「${GARDEN_DECOS[key].name}」`);
       } else {
         cell.setAttribute("aria-label", "飾りを置ける草地");
       }
-      if (cellId === state.gardenSelectedPlot) cell.classList.add("is-selected");
+      if (catHere) {
+        cell.insertAdjacentHTML("beforeend", `<span class="cat-sprite">${catSvg(state.garden.catCoat)}</span>`);
+        cell.setAttribute("aria-label", `${catDisplayName()}がいる`);
+      }
+      if (cellId === state.gardenSelectedPlot || (catHere && state.gardenSelectedPlot === "cat")) {
+        cell.classList.add("is-selected");
+      }
       cell.addEventListener("click", () => {
-        state.gardenSelectedPlot = cellId;
+        state.gardenSelectedPlot = catHere ? "cat" : cellId;
         renderField();
       });
       return cell;
+    }
+
+    function catSvg(coatKey) {
+      const coat = CAT_COATS[coatKey] || CAT_COATS.mike;
+      return `<svg viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="猫">
+        <path d="M60 108 C36 108 26 92 28 72 C30 54 44 46 60 46 C76 46 90 54 92 72 C94 92 84 108 60 108Z" fill="${coat.base}" stroke="#2c2320" stroke-width="2.4"/>
+        <path d="M88 84 C104 82 108 66 100 58 C104 74 94 78 88 74Z" fill="${coat.patch1}" stroke="#2c2320" stroke-width="2"/>
+        <circle cx="60" cy="40" r="22" fill="${coat.base}" stroke="#2c2320" stroke-width="2.4"/>
+        <path d="M42 28 L38 10 L54 20Z" fill="${coat.patch1}" stroke="#2c2320" stroke-width="2.2" stroke-linejoin="round"/>
+        <path d="M78 28 L82 10 L66 20Z" fill="${coat.patch2}" stroke="#2c2320" stroke-width="2.2" stroke-linejoin="round"/>
+        <path d="M40 60 C34 74 38 88 46 96" fill="none" stroke="${coat.patch2}" stroke-width="5" stroke-linecap="round" opacity="0.5"/>
+        <circle cx="52" cy="38" r="2.8" fill="#2c2320"/>
+        <circle cx="68" cy="38" r="2.8" fill="#2c2320"/>
+        <path d="M56 46 Q60 49 64 46" fill="none" stroke="#2c2320" stroke-width="2" stroke-linecap="round"/>
+        <ellipse cx="60" cy="44" rx="3" ry="2.2" fill="${coat.nose}"/>
+        <g stroke="#2c2320" stroke-width="1.4" stroke-linecap="round" opacity="0.75">
+          <path d="M46 43 L32 40"/>
+          <path d="M46 46 L33 47"/>
+          <path d="M74 43 L88 40"/>
+          <path d="M74 46 L87 47"/>
+        </g>
+      </svg>`;
     }
 
     function gardenStageSvg(plant, stage) {
@@ -2469,6 +2654,11 @@ JSON形式:
       container.textContent = "";
       const heading = document.createElement("h3");
       container.append(heading);
+      if (state.gardenSelectedPlot === "cat" && state.garden.cat) {
+        renderCatDetail(container, heading);
+        return;
+      }
+
       if (typeof state.gardenSelectedPlot === "string" && state.gardenSelectedPlot.startsWith("deco-")) {
         renderDecoDetail(container, heading, state.gardenSelectedPlot);
         return;
@@ -2556,6 +2746,98 @@ JSON形式:
       const p = document.createElement("p");
       p.textContent = text;
       return p;
+    }
+
+    function renderCatDetail(container, heading) {
+      const garden = state.garden;
+      const cat = garden.cat;
+      const resident = garden.catFriendship >= 3;
+      const coatLabel = CAT_COATS[garden.catCoat] ? CAT_COATS[garden.catCoat].label : "猫";
+      heading.textContent = resident ? `「${catDisplayName()}」` : `${coatLabel}のお客さん`;
+
+      const hearts = "♥".repeat(Math.min(3, garden.catFriendship)) + "♡".repeat(Math.max(0, 3 - garden.catFriendship));
+      container.append(paragraph(`なつき度 ${hearts}${resident ? "（この畑の家族）" : ""}`));
+
+      if (resident) {
+        container.append(paragraph("畑に住み着いている。たまに散歩に出て、何か拾ってくる。"));
+      } else {
+        const remain = cat.leaveAt ? cat.leaveAt - Date.now() : 0;
+        container.append(paragraph(remain > 0
+          ? `花の蜜をあげると仲良くなれる。帰るまであと${formatDurationShort(remain)}。`
+          : "花の蜜をあげると仲良くなれる。"));
+      }
+
+      const actions = document.createElement("div");
+      actions.className = "garden-actions";
+
+      const feedButton = document.createElement("button");
+      feedButton.type = "button";
+      if ((garden.items.mitsu || 0) > 0) {
+        feedButton.textContent = "花の蜜をあげる";
+      } else {
+        feedButton.textContent = "花の蜜がない";
+        feedButton.disabled = true;
+      }
+      feedButton.addEventListener("click", feedCat);
+      actions.append(feedButton);
+
+      const petButton = document.createElement("button");
+      petButton.type = "button";
+      petButton.textContent = "なでる";
+      petButton.addEventListener("click", petCat);
+      actions.append(petButton);
+
+      if (resident) {
+        const renameButton = document.createElement("button");
+        renameButton.type = "button";
+        renameButton.className = "ghost-button";
+        renameButton.textContent = garden.catName ? "名前を変える" : "名前をつける";
+        renameButton.addEventListener("click", renameCat);
+        actions.append(renameButton);
+      }
+      container.append(actions);
+    }
+
+    function feedCat() {
+      const garden = state.garden;
+      if (!garden.cat || (garden.items.mitsu || 0) <= 0) return;
+      garden.items.mitsu -= 1;
+      if (!garden.items.mitsu) delete garden.items.mitsu;
+      garden.catFriendship += 1;
+      addGardenXp(1);
+      const times = gardenTimes();
+      if (garden.catFriendship >= 3) {
+        if (garden.cat.leaveAt) {
+          garden.cat.leaveAt = 0;
+          garden.cat.giftAt = Date.now() + randBetween(times.catGiftMin, times.catGiftMax);
+          setNotice(`${CAT_COATS[garden.catCoat].label}はこの畑を気に入ったみたいだ。住み着いてくれた。名前をつけてあげよう。`, "ok");
+        } else {
+          setNotice(`${catDisplayName()}はおいしそうに蜜をなめた。`, "ok");
+        }
+      } else {
+        if (garden.cat.leaveAt) garden.cat.leaveAt += times.catFeedExtend;
+        setNotice(`蜜をあげた。少し距離が縮まった気がする（なつき度${Math.min(3, garden.catFriendship)}/3）。`, "ok");
+      }
+      saveGarden();
+      renderField();
+    }
+
+    function petCat() {
+      const resident = state.garden.catFriendship >= 3;
+      const reactions = resident
+        ? ["のどをごろごろ鳴らしている。", "ごろんと転がって、おなかを見せた。", "頭をぐいぐい押しつけてくる。", "しっぽがゆらゆら、ご機嫌みたいだ。"]
+        : ["少し身をかたくしたが、逃げなかった。", "そっとひと撫でだけ、許してくれた。", "じっとこちらを見ている。", "ぷいと横を向いた。でもその場にいる。"];
+      setNotice(reactions[Math.floor(Math.random() * reactions.length)], "");
+    }
+
+    function renameCat() {
+      const current = state.garden.catName;
+      const input = prompt("猫の名前", current || "");
+      if (input === null) return;
+      state.garden.catName = asShortText(input) || "";
+      saveGarden();
+      renderField();
+      if (state.garden.catName) setNotice(`「${state.garden.catName}」。いい名前をもらった。`, "ok");
     }
 
     function renderDecoDetail(container, heading, cellId) {
