@@ -288,6 +288,33 @@
       opacity: 1;
     }
 
+    #bgPhoto {
+      position: fixed;
+      inset: 0;
+      z-index: 0;
+      pointer-events: none;
+      opacity: 0;
+      transition: opacity 600ms ease;
+    }
+
+    #bgPhoto img {
+      display: block;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    #bgPhoto::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(180deg, rgba(14, 9, 6, 0.5), rgba(14, 9, 6, 0.34) 40%, rgba(14, 9, 6, 0.55));
+    }
+
+    #bgPhoto.is-visible {
+      opacity: 1;
+    }
+
     .topbar {
       display: flex;
       align-items: flex-start;
@@ -1468,6 +1495,7 @@
       </svg>
     </div>
   </div>
+  <div id="bgPhoto" aria-hidden="true"><img alt=""></div>
   <div class="app">
     <header class="topbar">
       <div class="brand">
@@ -2392,6 +2420,7 @@ JSON形式:
       el.navButtons.forEach((button) => {
         button.classList.toggle("active-nav", button.dataset.nav === view);
       });
+      updateBgPhoto();
     }
 
     function renderCafe() {
@@ -3815,6 +3844,62 @@ JSON形式:
       } else {
         document.documentElement.dataset.theme = theme;
       }
+      updateBgPhoto();
+    }
+
+    const bgPhotoCache = {};
+    let bgPhotoToken = 0;
+
+    function updateBgPhoto() {
+      const photo = document.getElementById("bgPhoto");
+      if (!photo) return;
+      const theme = state.settings.theme || "classic";
+      const view = state.currentView === "settings" ? "cafe" : (state.currentView || "cafe");
+      const candidates = [];
+      [`${theme}-${view}`, theme].forEach((name) => {
+        ["jpg", "png", "webp"].forEach((ext) => candidates.push(`assets/bg/${name}.${ext}`));
+      });
+      const token = ++bgPhotoToken;
+      probeBgPhoto(candidates, 0, token);
+    }
+
+    function probeBgPhoto(candidates, index, token) {
+      if (token !== bgPhotoToken) return;
+      if (index >= candidates.length) {
+        setBgPhoto("", token);
+        return;
+      }
+      const url = candidates[index];
+      if (bgPhotoCache[url] === true) {
+        setBgPhoto(url, token);
+        return;
+      }
+      if (bgPhotoCache[url] === false) {
+        probeBgPhoto(candidates, index + 1, token);
+        return;
+      }
+      const probe = new Image();
+      probe.onload = () => {
+        bgPhotoCache[url] = true;
+        setBgPhoto(url, token);
+      };
+      probe.onerror = () => {
+        bgPhotoCache[url] = false;
+        probeBgPhoto(candidates, index + 1, token);
+      };
+      probe.src = url;
+    }
+
+    function setBgPhoto(url, token) {
+      if (token !== bgPhotoToken) return;
+      const photo = document.getElementById("bgPhoto");
+      if (!url) {
+        photo.classList.remove("is-visible");
+        return;
+      }
+      const img = photo.querySelector("img");
+      if (img.getAttribute("src") !== url) img.src = url;
+      photo.classList.add("is-visible");
     }
 
     function renderSettings() {
