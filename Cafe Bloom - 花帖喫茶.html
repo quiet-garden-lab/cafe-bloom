@@ -3164,16 +3164,23 @@ JSON形式:
       const coat = CAT_COATS[coatKey] || CAT_COATS.mike;
       if (pose === "sleep") {
         return `<svg viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="眠っている猫">
-          <ellipse cx="58" cy="74" rx="33" ry="21" fill="${coat.base}" stroke="#2c2320" stroke-width="2.4"/>
-          <path d="M28 82 C40 94 76 96 90 84" fill="none" stroke="${coat.tail}" stroke-width="8" stroke-linecap="round"/>
-          <circle cx="79" cy="66" r="16" fill="${coat.base}" stroke="#2c2320" stroke-width="2.4"/>
-          <path d="M68 55 C66 50 66 45 67 42 C72 44 76 47 78 51Z" fill="${coat.base}" stroke="#2c2320" stroke-width="2" stroke-linejoin="round"/>
-          <path d="M88 53 C90 48 91 44 90 40 C85 42 81 45 79 49Z" fill="${coat.base}" stroke="#2c2320" stroke-width="2" stroke-linejoin="round"/>
-          <path d="M72 66 Q74 69 77 67 M83 66 Q85 69 88 67" fill="none" stroke="#2c2320" stroke-width="1.8" stroke-linecap="round"/>
-          <ellipse cx="80" cy="72" rx="2.4" ry="1.8" fill="${coat.nose}"/>
-          <ellipse cx="70" cy="74" rx="3.8" ry="2.4" fill="#eda49b" opacity="0.45"/>
-          <text x="100" y="46" font-size="13" fill="#fff2d7" opacity="0.55" font-family="sans-serif">z</text>
-          <text x="107" y="34" font-size="9" fill="#fff2d7" opacity="0.4" font-family="sans-serif">z</text>
+          <ellipse cx="58" cy="76" rx="33" ry="20" fill="${coat.base}" stroke="#2c2320" stroke-width="2.4"/>
+          <ellipse cx="46" cy="68" rx="11" ry="7" fill="${coat.tail}" opacity="0.4"/>
+          <path d="M27 74 C26 90 46 98 66 96 C80 95 90 91 93 83" fill="none" stroke="${coat.tail}" stroke-width="8" stroke-linecap="round"/>
+          <circle cx="79" cy="70" r="15" fill="${coat.base}" stroke="#2c2320" stroke-width="2.4"/>
+          <path d="M75 56 C73 52 70 50 66 50 C66 54 67 58 69 61Z" fill="${coat.base}" stroke="#2c2320" stroke-width="2" stroke-linejoin="round"/>
+          <path d="M83 56 C85 52 88 50 92 50 C92 54 91 58 89 61Z" fill="${coat.base}" stroke="#2c2320" stroke-width="2" stroke-linejoin="round"/>
+          <path d="M74 56 C72 54 70 53 69 53 C69 55 70 57 71 58Z" fill="#e8a7a0" opacity="0.7"/>
+          <path d="M84 56 C86 54 88 53 89 53 C89 55 88 57 87 58Z" fill="#e8a7a0" opacity="0.7"/>
+          <path d="M73 70 Q75 72.5 77.5 70 M83 70 Q85 72.5 87.5 70" fill="none" stroke="#2c2320" stroke-width="1.8" stroke-linecap="round"/>
+          <ellipse cx="80.5" cy="75" rx="2.2" ry="1.7" fill="${coat.nose}"/>
+          <ellipse cx="70" cy="75" rx="3.6" ry="2.2" fill="#eda49b" opacity="0.45"/>
+          <g stroke="${coat.whisker}" stroke-width="1.1" stroke-linecap="round" opacity="0.5">
+            <path d="M68 73 L61 72"/>
+            <path d="M68 76 L62 78"/>
+          </g>
+          <text x="100" y="48" font-size="13" fill="#fff2d7" opacity="0.55" font-family="sans-serif">z</text>
+          <text x="106" y="36" font-size="9" fill="#fff2d7" opacity="0.4" font-family="sans-serif">z</text>
         </svg>`;
       }
       return `<svg viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="猫">
