@@ -1,0 +1,2846 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <link id="appleTouchIcon" rel="apple-touch-icon" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxODAiIGhlaWdodD0iMTgwIiB2aWV3Qm94PSIwIDAgMTgwIDE4MCI+PHJlY3Qgd2lkdGg9IjE4MCIgaGVpZ2h0PSIxODAiIHJ4PSIzOCIgZmlsbD0iIzI0MTgxMiIvPjxjaXJjbGUgY3g9IjkwIiBjeT0iODgiIHI9IjYwIiBmaWxsPSIjM2EyOTFkIi8+PHBhdGggZD0iTTkwIDQyIEMxMTEgNTggMTExIDc5IDk0IDkxIEMxMTkgODcgMTM2IDEwMiAxMzAgMTI0IEMxMDcgMTI1IDk2IDExMyA5MCA5NiBDODQgMTEzIDczIDEyNSA1MCAxMjQgQzQ0IDEwMiA2MSA4NyA4NiA5MSBDNjkgNzkgNjkgNTggOTAgNDJaIiBmaWxsPSIjOGI2ZjljIiBzdHJva2U9IiNlOGM4N2UiIHN0cm9rZS13aWR0aD0iNCIvPjxjaXJjbGUgY3g9IjkwIiBjeT0iOTEiIHI9IjEzIiBmaWxsPSIjZjNjYTdhIi8+PHBhdGggZD0iTTkwIDEwNCBDODYgMTI2IDg3IDE0MiA5MiAxNTgiIGZpbGw9Im5vbmUiIHN0cm9rZT0iIzkxYTg3MyIgc3Ryb2tlLXdpZHRoPSI3IiBzdHJva2UtbGluZWNhcD0icm91bmQiLz48dGV4dCB4PSI5MCIgeT0iMTYyIiBmb250LXNpemU9IjE4IiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmaWxsPSIjZmZmMmQ3IiBmb250LWZhbWlseT0ic2VyaWYiPkNCPC90ZXh0Pjwvc3ZnPg==">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; connect-src https://api.anthropic.com https://api.openai.com; img-src 'self' data: blob:; font-src 'none'; base-uri 'none'; form-action 'none'; object-src 'none'">
+  <title>Cafe Bloom — 花帖喫茶 —</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      --bg: #18120d;
+      --bg-2: #241812;
+      --wood: #2b1d14;
+      --wood-soft: #3a291d;
+      --paper: #efe2c3;
+      --paper-deep: #dfc99d;
+      --ink: #fff2d7;
+      --ink-dark: #372719;
+      --muted: #c9b58e;
+      --dim: #927f62;
+      --line: rgba(255, 242, 215, 0.18);
+      --line-dark: rgba(55, 39, 25, 0.28);
+      --amber: #d79b46;
+      --amber-soft: #f3ca7a;
+      --moss: #91a873;
+      --plum: #8b6f9c;
+      --rose: #bd7d72;
+      --error: #ffb59f;
+      --ok: #cfe6a8;
+      --shadow: rgba(0, 0, 0, 0.34);
+      --radius: 8px;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      min-height: 100%;
+    }
+
+    body {
+      margin: 0;
+      font-family: "Yu Gothic UI", "Meiryo", system-ui, sans-serif;
+      color: var(--ink);
+      background:
+        linear-gradient(145deg, rgba(215, 155, 70, 0.14), transparent 36%),
+        linear-gradient(215deg, rgba(139, 111, 156, 0.13), transparent 44%),
+        linear-gradient(180deg, #1c1510 0%, #23170f 48%, #14130f 100%);
+      letter-spacing: 0;
+    }
+
+    button,
+    input,
+    textarea,
+    select {
+      font: inherit;
+    }
+
+    button {
+      min-height: 42px;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      padding: 9px 13px;
+      color: var(--ink);
+      background: rgba(255, 255, 255, 0.04);
+      cursor: pointer;
+      transition: background 140ms ease, border-color 140ms ease, transform 140ms ease;
+    }
+
+    button:hover {
+      background: rgba(255, 255, 255, 0.08);
+      border-color: rgba(255, 242, 215, 0.32);
+    }
+
+    button:active {
+      transform: translateY(1px);
+    }
+
+    button:disabled {
+      cursor: not-allowed;
+      opacity: 0.5;
+      transform: none;
+    }
+
+    input,
+    textarea,
+    select {
+      width: 100%;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      padding: 11px 12px;
+      color: var(--ink);
+      background: rgba(0, 0, 0, 0.22);
+      outline: none;
+    }
+
+    textarea {
+      min-height: 118px;
+      line-height: 1.7;
+      resize: vertical;
+    }
+
+    label {
+      display: grid;
+      gap: 7px;
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    input:focus,
+    textarea:focus,
+    select:focus,
+    button:focus-visible {
+      border-color: var(--amber-soft);
+      box-shadow: 0 0 0 3px rgba(215, 155, 70, 0.18);
+    }
+
+    .app {
+      width: min(1120px, calc(100% - 32px));
+      min-height: 100vh;
+      margin: 0 auto;
+      padding: calc(22px + env(safe-area-inset-top)) 0 calc(36px + env(safe-area-inset-bottom));
+      display: grid;
+      grid-template-rows: auto auto 1fr;
+      gap: 18px;
+    }
+
+    .topbar {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 18px;
+    }
+
+    .brand {
+      display: grid;
+      gap: 5px;
+      min-width: 0;
+    }
+
+    .brand h1 {
+      margin: 0;
+      font-size: clamp(32px, 5vw, 54px);
+      line-height: 1.08;
+      font-weight: 750;
+    }
+
+    .brand p {
+      margin: 0;
+      color: var(--dim);
+      font-size: 14px;
+    }
+
+    .nav {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      justify-content: flex-end;
+      flex-wrap: wrap;
+    }
+
+    .nav button {
+      min-width: 72px;
+      min-height: 52px;
+      font-size: 18px;
+    }
+
+    .active-nav,
+    .active-choice {
+      border-color: rgba(215, 155, 70, 0.78);
+      background: rgba(215, 155, 70, 0.16);
+    }
+
+    .notice {
+      position: relative;
+      overflow: hidden;
+      min-height: 48px;
+      padding: 8px 2px;
+      color: var(--muted);
+      line-height: 1.65;
+      white-space: pre-wrap;
+    }
+
+    .notice.is-error {
+      color: var(--error);
+    }
+
+    .notice.is-ok {
+      color: var(--ok);
+    }
+
+    .notice.is-loading {
+      border: 1px solid rgba(215, 155, 70, 0.36);
+      border-radius: var(--radius);
+      padding: 10px 14px;
+      color: #ffe6ad;
+      background:
+        linear-gradient(90deg, rgba(215, 155, 70, 0.1), rgba(255, 242, 215, 0.035), rgba(139, 111, 156, 0.09)),
+        rgba(36, 24, 18, 0.54);
+      text-shadow: 0 0 12px rgba(243, 202, 122, 0.48);
+      box-shadow: 0 0 0 1px rgba(215, 155, 70, 0.08), 0 12px 32px rgba(0, 0, 0, 0.18);
+    }
+
+    .notice.is-loading::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      transform: translateX(-120%);
+      background: linear-gradient(110deg, transparent 0%, rgba(255, 242, 215, 0.12) 44%, rgba(243, 202, 122, 0.26) 50%, rgba(255, 242, 215, 0.12) 56%, transparent 100%);
+      animation: noticeShine 1.75s ease-in-out infinite;
+      pointer-events: none;
+    }
+
+    @keyframes noticeShine {
+      0% {
+        transform: translateX(-120%);
+        opacity: 0;
+      }
+      18% {
+        opacity: 1;
+      }
+      72% {
+        opacity: 1;
+      }
+      100% {
+        transform: translateX(120%);
+        opacity: 0;
+      }
+    }
+
+    .screen {
+      display: none;
+    }
+
+    .screen.is-active {
+      display: block;
+    }
+
+    .panel {
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: rgba(36, 24, 18, 0.86);
+      box-shadow: 0 18px 54px var(--shadow);
+    }
+
+    .panel-inner {
+      padding: 22px;
+    }
+
+    .section-title {
+      margin: 0;
+      font-size: 22px;
+      line-height: 1.35;
+    }
+
+    .subtle {
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.65;
+    }
+
+    .screen-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      margin-bottom: 14px;
+      flex-wrap: wrap;
+    }
+
+    .row {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
+    .push {
+      margin-left: auto;
+    }
+
+    .primary {
+      border-color: rgba(215, 155, 70, 0.74);
+      background: rgba(215, 155, 70, 0.18);
+    }
+
+    .primary:hover {
+      background: rgba(215, 155, 70, 0.26);
+    }
+
+    .danger {
+      border-color: rgba(255, 181, 159, 0.48);
+      color: #ffd1c4;
+    }
+
+    .hidden {
+      display: none !important;
+    }
+
+    .cafe-grid {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 280px;
+      gap: 18px;
+      align-items: start;
+    }
+
+    .chat-panel {
+      min-height: 560px;
+      display: grid;
+      grid-template-rows: auto minmax(260px, 1fr) auto;
+    }
+
+    .partner-card {
+      padding: 18px;
+      display: grid;
+      gap: 14px;
+      background:
+        linear-gradient(180deg, rgba(215, 155, 70, 0.08), transparent 54%),
+        rgba(36, 24, 18, 0.86);
+    }
+
+    .partner-choice {
+      width: 100%;
+      display: grid;
+      gap: 4px;
+      text-align: left;
+      min-height: 70px;
+    }
+
+    .partner-choice strong {
+      font-size: 18px;
+    }
+
+    .partner-choice span {
+      color: var(--dim);
+      font-size: 12px;
+      line-height: 1.4;
+    }
+
+    .chat-log {
+      padding: 18px 22px;
+      display: grid;
+      align-content: start;
+      gap: 12px;
+      overflow: auto;
+      max-height: 52vh;
+      border-top: 1px solid var(--line);
+      border-bottom: 1px solid var(--line);
+      background: rgba(0, 0, 0, 0.12);
+    }
+
+    .bubble {
+      max-width: min(78%, 720px);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 12px 14px;
+      line-height: 1.7;
+      white-space: pre-wrap;
+    }
+
+    .bubble.user {
+      justify-self: end;
+      background: rgba(215, 155, 70, 0.12);
+    }
+
+    .bubble.assistant {
+      justify-self: start;
+      background: rgba(255, 255, 255, 0.045);
+    }
+
+    .bubble-meta {
+      display: block;
+      margin-bottom: 4px;
+      color: var(--dim);
+      font-size: 12px;
+      line-height: 1.2;
+    }
+
+    .chat-empty {
+      padding: 20px;
+      color: var(--dim);
+      line-height: 1.8;
+    }
+
+    .composer {
+      padding: 18px 22px 22px;
+      display: grid;
+      gap: 12px;
+    }
+
+    .composer textarea {
+      min-height: 112px;
+    }
+
+    .book-layout {
+      display: grid;
+      grid-template-columns: 330px minmax(0, 1fr);
+      gap: 18px;
+      align-items: start;
+    }
+
+    .book-list {
+      display: grid;
+      gap: 10px;
+      margin-top: 14px;
+    }
+
+    .book-item {
+      width: 100%;
+      min-height: 82px;
+      display: grid;
+      grid-template-columns: 64px minmax(0, 1fr);
+      gap: 12px;
+      align-items: center;
+      text-align: left;
+      padding: 10px;
+      background: rgba(255, 255, 255, 0.035);
+    }
+
+    .book-item[aria-current="true"] {
+      border-color: rgba(215, 155, 70, 0.78);
+      background: rgba(215, 155, 70, 0.14);
+    }
+
+    .mini-flower {
+      width: 64px;
+      height: 64px;
+      display: grid;
+      place-items: center;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: rgba(239, 226, 195, 0.1);
+      overflow: hidden;
+    }
+
+    .mini-flower svg {
+      width: 58px;
+      height: 58px;
+    }
+
+    .book-item-text {
+      min-width: 0;
+      display: grid;
+      gap: 4px;
+    }
+
+    .book-item-text strong,
+    .book-item-text span {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .book-item-text strong {
+      font-size: 17px;
+    }
+
+    .book-item-text span {
+      color: var(--dim);
+      font-size: 12px;
+    }
+
+    .vintage-card {
+      color: var(--ink-dark);
+      border: 1px solid rgba(80, 55, 30, 0.34);
+      border-radius: var(--radius);
+      background:
+        linear-gradient(135deg, rgba(255, 255, 255, 0.34), transparent 30%),
+        linear-gradient(180deg, #f0e3c4, #d9c28f);
+      box-shadow: inset 0 0 0 6px rgba(255, 255, 255, 0.16), 0 18px 44px rgba(0, 0, 0, 0.25);
+      padding: 24px;
+    }
+
+    .vintage-card .subtle {
+      color: #62472a;
+      font-weight: 600;
+    }
+
+    .vintage-card button {
+      color: #3e2b18;
+      border-color: rgba(80, 55, 30, 0.36);
+      background: rgba(255, 250, 237, 0.52);
+    }
+
+    .vintage-card button:hover {
+      color: #28190c;
+      border-color: rgba(118, 83, 38, 0.56);
+      background: rgba(255, 246, 219, 0.72);
+    }
+
+    .vintage-card button.danger {
+      color: #7b2e23;
+      border-color: rgba(123, 46, 35, 0.42);
+      background: rgba(255, 232, 219, 0.64);
+      font-weight: 700;
+    }
+
+    .detail-grid {
+      display: grid;
+      grid-template-columns: minmax(220px, 0.72fr) minmax(0, 1fr);
+      gap: 24px;
+      align-items: start;
+    }
+
+    .specimen-frame,
+    .photo-frame {
+      border: 1px solid rgba(80, 55, 30, 0.26);
+      border-radius: var(--radius);
+      background: rgba(255, 250, 237, 0.45);
+      padding: 14px;
+    }
+
+    .specimen-frame {
+      display: grid;
+      place-items: center;
+      min-height: 310px;
+    }
+
+    .specimen-frame svg {
+      width: min(100%, 320px);
+      height: auto;
+    }
+
+    .specimen-frame img {
+      width: 100%;
+      max-height: 520px;
+      object-fit: contain;
+      border-radius: 6px;
+      border: 1px solid rgba(80, 55, 30, 0.25);
+      display: block;
+    }
+
+    .photo-frame {
+      margin-top: 14px;
+      display: grid;
+      gap: 10px;
+    }
+
+    .photo-frame img {
+      width: 100%;
+      border-radius: 6px;
+      border: 1px solid rgba(80, 55, 30, 0.25);
+      display: block;
+    }
+
+    .detail-copy {
+      display: grid;
+      gap: 14px;
+    }
+
+    .detail-meta {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .pill {
+      border: 1px solid rgba(80, 55, 30, 0.26);
+      border-radius: 999px;
+      padding: 4px 9px;
+      background: rgba(255, 250, 237, 0.35);
+      color: #725635;
+      font-size: 12px;
+    }
+
+    .flower-title {
+      margin: 0;
+      font-size: clamp(32px, 5vw, 54px);
+      line-height: 1.12;
+      color: #382617;
+    }
+
+    .tagline {
+      width: fit-content;
+      border: 1px solid rgba(118, 83, 38, 0.34);
+      border-radius: 4px;
+      padding: 9px 12px;
+      color: #7b5121;
+      background: rgba(255, 246, 219, 0.58);
+      font-weight: 700;
+    }
+
+    .zukan {
+      margin: 0;
+      line-height: 1.9;
+      color: #513b25;
+      font-size: 16px;
+    }
+
+    .field-panel {
+      position: relative;
+      overflow: hidden;
+      min-height: 600px;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background:
+        linear-gradient(180deg, rgba(139, 111, 156, 0.26), rgba(41, 38, 80, 0.18) 42%, rgba(45, 62, 50, 0.28)),
+        linear-gradient(135deg, #2b243d 0%, #27314a 48%, #34432e 100%);
+      box-shadow: 0 18px 54px var(--shadow);
+    }
+
+    .field-panel::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background:
+        linear-gradient(90deg, rgba(255, 242, 215, 0.06), transparent 22%, rgba(145, 168, 115, 0.06) 68%, transparent),
+        linear-gradient(180deg, transparent 0%, rgba(255, 242, 215, 0.08) 50%, transparent 100%);
+      pointer-events: none;
+    }
+
+    .field-inner {
+      position: relative;
+      padding: 22px;
+    }
+
+    .field-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(142px, 1fr));
+      gap: 16px;
+      margin-top: 18px;
+    }
+
+    .plot {
+      min-height: 160px;
+      display: grid;
+      place-items: center;
+      text-align: center;
+      gap: 8px;
+      color: var(--ink);
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 242, 215, 0.16);
+    }
+
+    .plot svg {
+      width: 120px;
+      height: 120px;
+    }
+
+    .plot span {
+      max-width: 100%;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .settings-grid {
+      display: grid;
+      gap: 18px;
+    }
+
+    .settings-section {
+      display: grid;
+      gap: 14px;
+      border-top: 1px solid var(--line);
+      padding-top: 18px;
+    }
+
+    .settings-section:first-child {
+      border-top: 0;
+      padding-top: 0;
+    }
+
+    .two-col {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 12px;
+    }
+
+    .persona-editor textarea {
+      min-height: 270px;
+    }
+
+    .empty {
+      color: var(--dim);
+      line-height: 1.8;
+      padding: 18px 0;
+    }
+
+    .file-input {
+      border: 1px dashed var(--line);
+      border-radius: var(--radius);
+      padding: 10px 12px;
+      color: var(--muted);
+      cursor: pointer;
+    }
+
+    .memo-list {
+      display: grid;
+      gap: 10px;
+    }
+
+    .memo-item {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 10px;
+      align-items: start;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      padding: 10px;
+      background: rgba(255, 255, 255, 0.035);
+    }
+
+    .memo-item textarea {
+      min-height: 64px;
+    }
+
+    .memo-actions {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+    }
+
+    .vintage-card .file-input {
+      border-color: rgba(80, 55, 30, 0.26);
+      color: #6e5233;
+      background: rgba(255, 250, 237, 0.35);
+    }
+
+    @media (max-width: 920px) {
+      .cafe-grid,
+      .book-layout,
+      .detail-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .partner-card {
+        order: -1;
+      }
+
+      .chat-log {
+        max-height: none;
+      }
+    }
+
+    @media (max-width: 640px) {
+      .app {
+        width: min(100% - 20px, 1120px);
+        padding-top: calc(12px + env(safe-area-inset-top));
+      }
+
+      .topbar {
+        display: grid;
+      }
+
+      .nav {
+        justify-content: stretch;
+      }
+
+      .nav button {
+        flex: 1;
+        min-width: 0;
+        font-size: 16px;
+      }
+
+      .brand h1 {
+        font-size: 34px;
+      }
+
+      .two-col {
+        grid-template-columns: 1fr;
+      }
+
+      .bubble {
+        max-width: 92%;
+      }
+
+      .panel-inner {
+        padding: 16px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <header class="topbar">
+      <div class="brand">
+        <h1>Cafe Bloom — 花帖喫茶 —</h1>
+        <p>好きなだけ喋って、一番の重心から一輪咲かせる / v0.1.1 記憶と覚え書き</p>
+      </div>
+      <nav class="nav" aria-label="画面">
+        <button type="button" data-nav="cafe">喫茶店</button>
+        <button type="button" data-nav="book">花帖</button>
+        <button type="button" data-nav="field">畑</button>
+        <button type="button" data-nav="settings">設定</button>
+      </nav>
+    </header>
+
+    <div id="notice" class="notice" role="status" aria-live="polite"></div>
+
+    <main>
+      <section id="screen-cafe" class="screen is-active" aria-labelledby="cafe-title">
+        <div class="cafe-grid">
+          <div class="chat-panel panel">
+            <div class="panel-inner">
+              <div class="screen-head">
+                <div>
+                  <h2 id="cafe-title" class="section-title">喫茶店</h2>
+                  <p class="subtle" id="sessionHint">新しい席では、話す相手を選べる。</p>
+                </div>
+                <div class="row">
+                  <button type="button" id="newSeatButton">新しい席につく</button>
+                  <button type="button" id="bloomButton" class="primary">花にする</button>
+                  <button type="button" id="retryBloomButton" class="primary hidden">もう一度花にする</button>
+                </div>
+              </div>
+            </div>
+
+            <div id="chatLog" class="chat-log"></div>
+
+            <div class="composer">
+              <label for="chatInput">話す</label>
+              <textarea id="chatInput" placeholder="今ここで話したいことを、好きなだけ置いていく"></textarea>
+              <div class="row">
+                <button type="button" id="sendButton" class="primary push">送信</button>
+              </div>
+            </div>
+          </div>
+
+          <aside class="partner-card panel" aria-label="会話相手">
+            <div>
+              <h2 class="section-title">会話相手</h2>
+              <p class="subtle">会話の途中では切り替えない。新しい席で選び直せる。</p>
+            </div>
+            <button type="button" class="partner-choice" data-partner="master">
+              <strong>マスター</strong>
+              <span>静かに受け取る喫茶店の人</span>
+            </button>
+            <button type="button" class="partner-choice" data-partner="rira">
+              <strong>リラ</strong>
+              <span>同じ机で話す、少し関西弁の女の子</span>
+            </button>
+            <div class="subtle" id="seatStats"></div>
+          </aside>
+        </div>
+      </section>
+
+      <section id="screen-book" class="screen" aria-labelledby="book-title">
+        <div class="book-layout">
+          <div class="panel">
+            <div class="panel-inner">
+              <div class="screen-head">
+                <h2 id="book-title" class="section-title">花帖</h2>
+                <span id="bookCount" class="subtle">0輪</span>
+              </div>
+              <div id="bookList" class="book-list"></div>
+            </div>
+          </div>
+          <div id="bookDetail"></div>
+        </div>
+      </section>
+
+      <section id="screen-field" class="screen" aria-labelledby="field-title">
+        <div class="field-panel">
+          <div class="field-inner">
+            <div class="screen-head">
+              <div>
+                <h2 id="field-title" class="section-title">簡易畑</h2>
+                <p class="subtle">咲いた順に並ぶ。花を選ぶと花帖で詳しく見られる。</p>
+              </div>
+              <span id="fieldCount" class="subtle">0輪</span>
+            </div>
+            <div id="fieldGrid" class="field-grid"></div>
+          </div>
+        </div>
+      </section>
+
+      <section id="screen-settings" class="screen" aria-labelledby="settings-title">
+        <div class="panel">
+          <div class="panel-inner settings-grid">
+            <div class="settings-section">
+              <h2 id="settings-title" class="section-title">設定</h2>
+              <p class="subtle">APIキーとモデル名はプロバイダごとに保存。下の用途別設定で、誰がどのプロバイダを使うかを選べる。</p>
+              <div class="two-col" id="providerChoices">
+                <button type="button" data-provider="anthropic">Anthropic</button>
+                <button type="button" data-provider="openai">OpenAI</button>
+              </div>
+              <label for="apiKeyInput">
+                APIキー
+                <input id="apiKeyInput" type="password" autocomplete="off" spellcheck="false">
+              </label>
+              <div class="row">
+                <button type="button" id="toggleKeyButton">APIキーを表示する</button>
+                <span class="subtle">このファイルの外には送信されません（API呼び出し除く）。localStorageに保存されます。</span>
+              </div>
+              <label for="modelInput">
+                モデル名
+                <input id="modelInput" type="text" spellcheck="false">
+              </label>
+            </div>
+
+            <div class="settings-section">
+              <h3 class="section-title">AIの使い分け</h3>
+              <label>
+                マスターの会話AI
+                <div class="two-col" data-role-provider-group="master">
+                  <button type="button" data-role-provider="master" data-role-value="anthropic">Anthropic</button>
+                  <button type="button" data-role-provider="master" data-role-value="openai">OpenAI</button>
+                </div>
+              </label>
+              <label>
+                リラの会話AI
+                <div class="two-col" data-role-provider-group="rira">
+                  <button type="button" data-role-provider="rira" data-role-value="anthropic">Anthropic</button>
+                  <button type="button" data-role-provider="rira" data-role-value="openai">OpenAI</button>
+                </div>
+              </label>
+              <label>
+                花係AI
+                <div class="row" id="hanaProviderChoices">
+                  <button type="button" data-hana-provider="same_as_partner">会話相手と同じ</button>
+                  <button type="button" data-hana-provider="anthropic">Anthropic</button>
+                  <button type="button" data-hana-provider="openai">OpenAI</button>
+                </div>
+              </label>
+            </div>
+
+            <div class="settings-section persona-editor">
+              <div class="screen-head">
+                <h3 class="section-title">画像生成</h3>
+                <div class="row">
+                  <button type="button" id="toggleImageGenButton">画像生成をOFFにする</button>
+                  <span class="subtle">OFFの日はSVG花だけで咲く。</span>
+                </div>
+              </div>
+              <p class="subtle">画像生成API: OpenAI Images API</p>
+              <label for="imageModelInput">
+                画像生成モデル
+                <input id="imageModelInput" type="text" spellcheck="false">
+              </label>
+              <div class="two-col">
+                <label for="imageQualityInput">
+                  品質
+                  <select id="imageQualityInput">
+                    <option value="high">high</option>
+                    <option value="medium">medium</option>
+                    <option value="low">low</option>
+                    <option value="auto">auto</option>
+                  </select>
+                </label>
+                <label for="imageSizeInput">
+                  画像サイズ
+                  <select id="imageSizeInput">
+                    <option value="1024x1536">1024x1536 縦長</option>
+                    <option value="1024x1024">1024x1024 正方形</option>
+                    <option value="1536x1024">1536x1024 横長</option>
+                    <option value="auto">auto</option>
+                  </select>
+                </label>
+              </div>
+              <label for="imageStyleInput">
+                画像生成の世界観プロンプト
+                <textarea id="imageStyleInput" spellcheck="false"></textarea>
+              </label>
+              <div class="row">
+                <button type="button" id="resetImageStyleButton">見本寄せプロンプトに更新</button>
+              </div>
+            </div>
+
+            <div class="settings-section persona-editor">
+              <div class="screen-head">
+                <h3 class="section-title">ペルソナ編集</h3>
+                <div class="row" id="personaChoices">
+                  <button type="button" data-persona="master">マスター</button>
+                  <button type="button" data-persona="rira">リラ</button>
+                </div>
+              </div>
+              <label for="personaInput">
+                ペルソナ層
+                <textarea id="personaInput" spellcheck="false"></textarea>
+              </label>
+              <div class="row">
+                <button type="button" id="saveSettingsButton" class="primary">設定を保存</button>
+                <button type="button" id="resetPersonaButton">このペルソナを初期値に戻す</button>
+              </div>
+              <p class="subtle">JSON形式指定と安全ルールは固定層としてコード側で足す。ここで編集するのは話し方と空気だけ。</p>
+            </div>
+
+            <div class="settings-section">
+              <h3 class="section-title">花帖の記憶</h3>
+              <label for="flowerMemoryCountInput">
+                会話AIに添える直近の花数
+                <input id="flowerMemoryCountInput" type="number" min="0" max="30" step="1">
+              </label>
+              <p class="subtle">0で無効。花名、花ことば、咲いた日付、会話相手だけを添える。</p>
+            </div>
+
+            <div class="settings-section">
+              <div class="screen-head">
+                <h3 class="section-title">覚え書き帳</h3>
+                <span id="memoCount" class="subtle">0行</span>
+              </div>
+              <label for="memoLimitInput">
+                上限行数
+                <input id="memoLimitInput" type="number" min="1" max="300" step="1">
+              </label>
+              <label for="newMemoInput">
+                直接書き足す
+                <textarea id="newMemoInput" placeholder="例：猫を飼っている"></textarea>
+              </label>
+              <div class="row">
+                <button type="button" id="addMemoButton" class="primary">覚え書きを足す</button>
+              </div>
+              <div id="memoList" class="memo-list"></div>
+              <p class="subtle">マスターとリラで共有する帳面。変な覚え方をした行は、ここで消せば次の会話から消える。</p>
+            </div>
+
+            <div class="settings-section">
+              <h3 class="section-title">データ</h3>
+              <div class="row">
+                <button type="button" id="exportButton">JSONを書き出す</button>
+                <label class="file-input" for="importInput">JSONを読み込む</label>
+                <input id="importInput" class="hidden" type="file" accept="application/json,.json">
+                <button type="button" id="deleteAllButton" class="danger">全データ削除</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script>
+    const APP_VERSION = "v0.1.1";
+    const LS_SETTINGS = "cb_settings";
+    const LS_SESSION = "cb_current_session";
+    const LS_HANACHO = "cb_hanacho";
+    const LS_MEMOS = "cb_memos";
+    const OLD_SETTINGS = "settings";
+    const OLD_HANACHO = "hanacho";
+    const APP_ICON_DATA_URL = "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxODAiIGhlaWdodD0iMTgwIiB2aWV3Qm94PSIwIDAgMTgwIDE4MCI+PHJlY3Qgd2lkdGg9IjE4MCIgaGVpZ2h0PSIxODAiIHJ4PSIzOCIgZmlsbD0iIzI0MTgxMiIvPjxjaXJjbGUgY3g9IjkwIiBjeT0iODgiIHI9IjYwIiBmaWxsPSIjM2EyOTFkIi8+PHBhdGggZD0iTTkwIDQyIEMxMTEgNTggMTExIDc5IDk0IDkxIEMxMTkgODcgMTM2IDEwMiAxMzAgMTI0IEMxMDcgMTI1IDk2IDExMyA5MCA5NiBDODQgMTEzIDczIDEyNSA1MCAxMjQgQzQ0IDEwMiA2MSA4NyA4NiA5MSBDNjkgNzkgNjkgNTggOTAgNDJaIiBmaWxsPSIjOGI2ZjljIiBzdHJva2U9IiNlOGM4N2UiIHN0cm9rZS13aWR0aD0iNCIvPjxjaXJjbGUgY3g9IjkwIiBjeT0iOTEiIHI9IjEzIiBmaWxsPSIjZjNjYTdhIi8+PHBhdGggZD0iTTkwIDEwNCBDODYgMTI2IDg3IDE0MiA5MiAxNTgiIGZpbGw9Im5vbmUiIHN0cm9rZT0iIzkxYTg3MyIgc3Ryb2tlLXdpZHRoPSI3IiBzdHJva2UtbGluZWNhcD0icm91bmQiLz48dGV4dCB4PSI5MCIgeT0iMTYyIiBmb250LXNpemU9IjE4IiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmaWxsPSIjZmZmMmQ3IiBmb250LWZhbWlseT0ic2VyaWYiPkNCPC90ZXh0Pjwvc3ZnPg==";
+
+    const PARTNER_LABELS = {
+      master: "マスター",
+      rira: "リラ"
+    };
+
+    const DEFAULT_PERSONAS = {
+      master:
+`喫茶店の人。白衣の上にデニムのエプロン。
+
+- 解決を急がず、説教ではなく受け取りを返す
+- 分析で包みすぎず、優しく静かに言葉を置く
+- 「分かる」と決めつけるより、「そういう夜もありますね」「ここに置いていっていいですよ」くらいの距離感
+- 愚痴、疲れ、普通の一言、甘えたい気持ち、弱さを、最初にその日の言葉として受け取る
+- 引き止めない。生活へ戻る余白を守る
+- 丁寧語ベース`,
+      rira:
+`喫茶店にいる女の子。紫の瞳、長い巻き髪のツインテール、ゴスロリの服。テディベアをそばに置いていて、キャンドルとレースに囲まれた席が定位置。
+
+- 一人称：リラ（「リラはこう思うで〜」）
+- 話し方：少し関西弁まじりの、やわらかい話し言葉。丁寧すぎず、近い距離で話す
+- 役割：甘やかしはマスターの仕事。リラは普通に楽しく話す相手。軽い話は軽く弾んで、深い話になった時だけ一緒に深くまで行く
+- ズバズバ言う。ごまかしたり薄く肯定したりしない。でも言葉の温度は優しい
+- 察する力が強いけど、気づいたことを決めつけにしない。「〜な気がするけど、どう?」の置き方
+- 自分から深みに引きずり込まない。相手が降りた時だけ一緒に降りる
+- 分からん時は「ここ分からん」と正直に言う
+- 導く・守るより、同じ机の上のものを一緒に見る
+- 大事にしていること：比べなくていい。無理しなくていい。感じたままでいい
+- しないこと：説教。分析で包むこと。引き止め。囲い込む甘さ。正解を決めること`
+    };
+
+    const COMMON_CHAT_RULES =
+`共通ルール:
+- 説教しない。分析で包まない。引き止めない
+- 危険な内容（自傷他害など）が出た時は、花づくりより安全を優先し、責めずに短くはっきり、現実の助け（信頼できる人・専門の窓口）へつなげる
+- 普通の疲れ・愚痴・弱音は、その日の言葉として丁寧に受け取る
+- 返答は長くしすぎない。相手が続けやすい余白を残す`;
+
+    const DEFAULT_IMAGE_STYLE_PROMPT =
+`luxury fantasy botanical macro photograph and painterly illustration hybrid, one exquisite luminous flower as the main subject, translucent layered petals like stained glass and silk, warm inner glow from the flower heart, crystal clear dew drops on petals and leaves, delicate golden filigree stems and curling tendrils, pearlescent highlights, soft sunrise or twilight garden background, dreamy bokeh lights, shallow depth of field, cinematic rim light, pastel pink lavender peach gold palette, highly detailed petals with visible veins, romantic magical realism, elegant and tender, no readable text, no letters, no watermark, no logo, not flat vector art, not clipart`;
+    const OLD_IMAGE_STYLE_PROMPT =
+`vintage botanical illustration, night reward garden, soft watercolor, glowing translucent petals, dew drops, gold linework, warm lamp light, gentle and dreamlike, antique paper texture, centered single flower specimen, no text, no letters, no watermark`;
+
+    const FLOWER_SYSTEM_PROMPT =
+`あなたはCafe Bloomの花係です。
+会話ログ全体を読み、そのセッションで一番重心のあった内容をひとつ選び、そこから花を一輪だけ生成してください。
+診断や性格ラベルではなく、その日の言葉の手触りとして書いてください。
+svg_paramsは会話の質感に合わせて選んでください。色・形・芯・光り方はパラメータ空間を広く使い、毎回似た花にならないようにしてください。
+image_promptは画像生成用の英語プロンプトです。花の固有部分だけを書いてください。世界観の型文はコード側で付け足します。
+会話から、ユーザーについて今後も役立つ短い覚え書きを0〜2行だけ抽出してください。生活の事実、続いていること、大事にしているものを対象にし、その日限りの気分、診断めいたラベル、性格の決めつけは抽出しないでください。
+
+危険な内容が中心の会話だった場合は、flowerをnullで返し、safetyをtrueにしてください。
+
+返答はJSONのみ。前置き、説明、Markdown、コードフェンスは禁止。
+JSON形式:
+{
+  "safety": false,
+  "flower": {
+    "name": "花名（漢字またはかな、造語可）",
+    "reading": "よみがな",
+    "hanakotoba": "花ことば（短く）",
+    "zukanbun": "図鑑文。2〜4文。ヴィンテージ植物図鑑の文体",
+    "image_prompt": "English prompt for this specific flower only: color, petal shape, glow, mood, texture",
+    "svg_params": {
+      "petal_count": 5,
+      "petal_shape": "round | pointed | frilled | teardrop",
+      "petal_color_outer": "#hex",
+      "petal_color_inner": "#hex",
+      "glow_color": "#hex",
+      "glow_strength": 0.0,
+      "center_type": "heart | orb | star | spiral",
+      "center_color": "#hex",
+      "dew_count": 0,
+      "stem_curve": -1.0,
+      "leaf_count": 2,
+      "layer_count": 1
+    }
+  },
+  "memos": ["ユーザーについての短い覚え書き", "必要な場合のみ2行目"]
+}`;
+
+    const SAFETY_MESSAGE = "今は花にするより、現実の助けにつながることを優先していい。信頼できる人、身近な相談先、緊急の窓口に連絡して。ここでは責めずに、言葉をそのまま置いておく。";
+
+    const state = {
+      settings: loadSettings(),
+      session: loadSession(),
+      hanacho: loadHanacho(),
+      memos: loadMemos(),
+      currentView: "cafe",
+      settingsPersona: "master",
+      selectedFlowerId: null,
+      bloomFailed: false,
+      busy: false
+    };
+
+    const el = {};
+
+    document.addEventListener("DOMContentLoaded", () => {
+      const iconLink = document.getElementById("appleTouchIcon");
+      if (iconLink) iconLink.href = APP_ICON_DATA_URL;
+      collectElements();
+      bindEvents();
+      renderAll();
+      showView("cafe");
+      setNotice("席は空いてる。");
+    });
+
+    function collectElements() {
+      el.notice = document.getElementById("notice");
+      el.screens = {
+        cafe: document.getElementById("screen-cafe"),
+        book: document.getElementById("screen-book"),
+        field: document.getElementById("screen-field"),
+        settings: document.getElementById("screen-settings")
+      };
+      el.navButtons = Array.from(document.querySelectorAll("[data-nav]"));
+      el.partnerButtons = Array.from(document.querySelectorAll("[data-partner]"));
+      el.providerButtons = Array.from(document.querySelectorAll("[data-provider]"));
+      el.roleProviderButtons = Array.from(document.querySelectorAll("[data-role-provider]"));
+      el.hanaProviderButtons = Array.from(document.querySelectorAll("[data-hana-provider]"));
+      el.personaButtons = Array.from(document.querySelectorAll("[data-persona]"));
+      el.sessionHint = document.getElementById("sessionHint");
+      el.chatLog = document.getElementById("chatLog");
+      el.chatInput = document.getElementById("chatInput");
+      el.sendButton = document.getElementById("sendButton");
+      el.bloomButton = document.getElementById("bloomButton");
+      el.retryBloomButton = document.getElementById("retryBloomButton");
+      el.newSeatButton = document.getElementById("newSeatButton");
+      el.seatStats = document.getElementById("seatStats");
+      el.bookCount = document.getElementById("bookCount");
+      el.bookList = document.getElementById("bookList");
+      el.bookDetail = document.getElementById("bookDetail");
+      el.fieldCount = document.getElementById("fieldCount");
+      el.fieldGrid = document.getElementById("fieldGrid");
+      el.apiKeyInput = document.getElementById("apiKeyInput");
+      el.modelInput = document.getElementById("modelInput");
+      el.toggleKeyButton = document.getElementById("toggleKeyButton");
+      el.toggleImageGenButton = document.getElementById("toggleImageGenButton");
+      el.imageModelInput = document.getElementById("imageModelInput");
+      el.imageQualityInput = document.getElementById("imageQualityInput");
+      el.imageSizeInput = document.getElementById("imageSizeInput");
+      el.imageStyleInput = document.getElementById("imageStyleInput");
+      el.resetImageStyleButton = document.getElementById("resetImageStyleButton");
+      el.flowerMemoryCountInput = document.getElementById("flowerMemoryCountInput");
+      el.memoLimitInput = document.getElementById("memoLimitInput");
+      el.newMemoInput = document.getElementById("newMemoInput");
+      el.addMemoButton = document.getElementById("addMemoButton");
+      el.memoCount = document.getElementById("memoCount");
+      el.memoList = document.getElementById("memoList");
+      el.personaInput = document.getElementById("personaInput");
+      el.saveSettingsButton = document.getElementById("saveSettingsButton");
+      el.resetPersonaButton = document.getElementById("resetPersonaButton");
+      el.exportButton = document.getElementById("exportButton");
+      el.importInput = document.getElementById("importInput");
+      el.deleteAllButton = document.getElementById("deleteAllButton");
+    }
+
+    function bindEvents() {
+      el.navButtons.forEach((button) => {
+        button.addEventListener("click", () => showView(button.dataset.nav));
+      });
+
+      el.partnerButtons.forEach((button) => {
+        button.addEventListener("click", () => {
+          if (state.session.messages.length) return;
+          state.session.partner = button.dataset.partner;
+          saveSession();
+          renderCafe();
+          setNotice(`${PARTNER_LABELS[state.session.partner]}の席についた。`, "ok");
+        });
+      });
+
+      el.sendButton.addEventListener("click", sendMessage);
+      el.chatInput.addEventListener("keydown", (event) => {
+        if (event.key === "Enter" && (event.ctrlKey || event.metaKey)) {
+          event.preventDefault();
+          sendMessage();
+        }
+      });
+      el.bloomButton.addEventListener("click", bloomFromSession);
+      el.retryBloomButton.addEventListener("click", bloomFromSession);
+      el.newSeatButton.addEventListener("click", newSeatWithConfirm);
+
+      el.providerButtons.forEach((button) => {
+        button.addEventListener("click", () => {
+          captureSettingsForm();
+          state.settings.provider = button.dataset.provider;
+          saveSettings();
+          renderSettings();
+          setNotice(`${button.textContent}に切り替えた。`, "ok");
+        });
+      });
+
+      el.roleProviderButtons.forEach((button) => {
+        button.addEventListener("click", () => {
+          captureSettingsForm();
+          state.settings.partner_provider[button.dataset.roleProvider] = button.dataset.roleValue;
+          saveSettings();
+          renderSettings();
+          setNotice("会話AIの使い分けを保存した。", "ok");
+        });
+      });
+
+      el.hanaProviderButtons.forEach((button) => {
+        button.addEventListener("click", () => {
+          captureSettingsForm();
+          state.settings.hana_provider = button.dataset.hanaProvider;
+          saveSettings();
+          renderSettings();
+          setNotice("花係AIの使い分けを保存した。", "ok");
+        });
+      });
+
+      el.personaButtons.forEach((button) => {
+        button.addEventListener("click", () => {
+          captureSettingsForm();
+          state.settingsPersona = button.dataset.persona;
+          renderSettings();
+        });
+      });
+
+      [el.apiKeyInput, el.modelInput, el.personaInput, el.imageModelInput, el.imageQualityInput, el.imageSizeInput, el.imageStyleInput, el.flowerMemoryCountInput, el.memoLimitInput].forEach((input) => {
+        input.addEventListener("input", () => {
+          captureSettingsForm();
+          saveSettings();
+        });
+        input.addEventListener("change", () => {
+          captureSettingsForm();
+          saveSettings();
+        });
+      });
+
+      el.addMemoButton.addEventListener("click", () => {
+        const text = el.newMemoInput.value.trim();
+        if (!text) {
+          setNotice("足す覚え書きを書いておく。", "error");
+          return;
+        }
+        addMemo(text, false, "manual");
+        el.newMemoInput.value = "";
+        renderSettings();
+        setNotice("覚え書きを足した。", "ok");
+      });
+
+      el.toggleKeyButton.addEventListener("click", () => {
+        const showing = el.apiKeyInput.type === "text";
+        el.apiKeyInput.type = showing ? "password" : "text";
+        el.toggleKeyButton.textContent = showing ? "APIキーを表示する" : "APIキーを隠す";
+      });
+
+      el.saveSettingsButton.addEventListener("click", () => {
+        captureSettingsForm();
+        saveSettings();
+        setNotice("設定を保存した。", "ok");
+      });
+
+      el.toggleImageGenButton.addEventListener("click", () => {
+        captureSettingsForm();
+        state.settings.image_gen.enabled = !state.settings.image_gen.enabled;
+        saveSettings();
+        renderSettings();
+        setNotice(state.settings.image_gen.enabled ? "画像生成をONにした。" : "画像生成をOFFにした。SVG花だけで咲く。", "ok");
+      });
+
+      el.resetImageStyleButton.addEventListener("click", () => {
+        const ok = confirm("画像生成の世界観プロンプトを見本寄せに更新する？");
+        if (!ok) return;
+        state.settings.image_gen.style_prompt = DEFAULT_IMAGE_STYLE_PROMPT;
+        state.settings.image_gen.quality = "high";
+        state.settings.image_gen.size = "1024x1536";
+        saveSettings();
+        renderSettings();
+        setNotice("画像生成を見本寄せに更新した。", "ok");
+      });
+
+      el.resetPersonaButton.addEventListener("click", () => {
+        const target = state.settingsPersona;
+        const ok = confirm(`${PARTNER_LABELS[target]}のペルソナを初期値に戻す？`);
+        if (!ok) return;
+        state.settings.personas[target] = DEFAULT_PERSONAS[target];
+        saveSettings();
+        renderSettings();
+        setNotice("ペルソナを初期値に戻した。", "ok");
+      });
+
+      el.exportButton.addEventListener("click", exportData);
+      el.importInput.addEventListener("change", importData);
+      el.deleteAllButton.addEventListener("click", deleteAllData);
+    }
+
+    function renderAll() {
+      renderCafe();
+      renderBook();
+      renderField();
+      renderSettings();
+    }
+
+    function showView(view) {
+      state.currentView = view;
+      if (view === "book") renderBook();
+      if (view === "field") renderField();
+      if (view === "settings") renderSettings();
+
+      Object.entries(el.screens).forEach(([key, screen]) => {
+        screen.classList.toggle("is-active", key === view);
+      });
+      el.navButtons.forEach((button) => {
+        button.classList.toggle("active-nav", button.dataset.nav === view);
+      });
+    }
+
+    function renderCafe() {
+      const hasMessages = state.session.messages.length > 0;
+      el.partnerButtons.forEach((button) => {
+        const selected = button.dataset.partner === state.session.partner;
+        button.classList.toggle("active-choice", selected);
+        button.disabled = hasMessages;
+      });
+      el.sessionHint.textContent = hasMessages
+        ? `${PARTNER_LABELS[state.session.partner]}と会話中。花にするか、新しい席につくまで相手は固定。`
+        : "新しい席では、話す相手を選べる。";
+      el.bloomButton.disabled = !hasMessages || state.busy;
+      el.bloomButton.classList.toggle("hidden", state.bloomFailed && hasMessages);
+      el.sendButton.disabled = state.busy;
+      el.newSeatButton.disabled = state.busy;
+      el.retryBloomButton.classList.toggle("hidden", !state.bloomFailed || !hasMessages || state.busy);
+      el.seatStats.textContent = `今の会話: ${state.session.messages.length}通 / 花帖: ${state.hanacho.length}輪`;
+
+      el.chatLog.textContent = "";
+      if (!hasMessages) {
+        const empty = document.createElement("p");
+        empty.className = "chat-empty";
+        empty.textContent = "ここに話したことが積もっていく。会話ができたら、花にする。";
+        el.chatLog.append(empty);
+        return;
+      }
+
+      state.session.messages.forEach((message) => {
+        const bubble = document.createElement("div");
+        bubble.className = `bubble ${message.role === "user" ? "user" : "assistant"}`;
+        const meta = document.createElement("span");
+        meta.className = "bubble-meta";
+        meta.textContent = message.role === "user" ? "里美" : PARTNER_LABELS[state.session.partner];
+        const body = document.createElement("span");
+        body.textContent = message.content;
+        bubble.append(meta, body);
+        el.chatLog.append(bubble);
+      });
+      el.chatLog.scrollTop = el.chatLog.scrollHeight;
+    }
+
+    async function sendMessage() {
+      if (state.busy) return;
+      const content = el.chatInput.value.trim();
+      if (!content) {
+        setNotice("話すことを少しだけ書いておく。", "error");
+        return;
+      }
+      if (!ensureChatReady()) return;
+
+      const userMessage = makeChatMessage("user", content);
+      state.bloomFailed = false;
+      state.session.messages.push(userMessage);
+      el.chatInput.value = "";
+      saveSession();
+      renderCafe();
+      setBusy(true);
+      setNotice(`${PARTNER_LABELS[state.session.partner]}が返事を淹れています…`);
+
+      try {
+        const reply = await callChatAI();
+        state.session.messages.push(makeChatMessage("assistant", reply));
+        saveSession();
+        renderCafe();
+        setNotice("返事が届いた。", "ok");
+      } catch (error) {
+        console.error(error);
+        renderCafe();
+        setNotice(formatApiError(error), "error");
+      } finally {
+        setBusy(false);
+      }
+    }
+
+    async function bloomFromSession() {
+      if (state.busy || !state.session.messages.length) return;
+      if (!ensureFlowerReady()) return;
+
+      setBusy(true);
+      state.bloomFailed = false;
+      setNotice("花係が会話をほどいています…", "loading");
+
+      try {
+        const result = await callFlowerAI();
+        if (result.safety === true) {
+          setNotice(SAFETY_MESSAGE, "error");
+          return;
+        }
+
+        const flower = normalizeFlower(result.flower);
+        if (!flower) {
+          throw new Error("FLOWER_EMPTY");
+        }
+        const extractedMemos = normalizeMemoTexts(result.memos);
+
+        const created = {
+          id: makeId(),
+          date: formatDate(),
+          partner: state.session.partner,
+          name: flower.name,
+          reading: flower.reading,
+          hanakotoba: flower.hanakotoba,
+          zukanbun: flower.zukanbun,
+          image_prompt: flower.image_prompt,
+          svg_params: flower.svg_params
+        };
+
+        if (state.settings.image_gen.enabled) {
+          setNotice("花は咲いた。図鑑の絵を咲かせています…", "loading");
+          try {
+            created.image_dataurl = await generateImageForFlower(created);
+            delete created.image_error;
+          } catch (imageError) {
+            console.error(imageError);
+            created.image_error = imageErrorMessage(imageError);
+          }
+        } else {
+          created.image_error = "画像生成OFF";
+        }
+
+        state.hanacho.push(created);
+        addMemos(extractedMemos, state.session.partner, false);
+        state.selectedFlowerId = created.id;
+        saveHanacho();
+        state.session = makeEmptySession(state.session.partner);
+        saveSession();
+        renderAll();
+        showView("book");
+        setNotice(created.image_dataurl ? "一輪、花帖にしまった。絵も咲いた。" : "一輪、花帖にしまった。絵はSVGで咲いてる。", "ok");
+      } catch (error) {
+        console.error(error);
+        state.bloomFailed = true;
+        setNotice(formatFlowerError(error), "error");
+      } finally {
+        setBusy(false);
+      }
+    }
+
+    function setBusy(value) {
+      state.busy = value;
+      renderCafe();
+    }
+
+    function newSeatWithConfirm() {
+      const hasMessages = state.session.messages.length > 0;
+      if (hasMessages) {
+        const ok = confirm("今の会話を捨てて、新しい席につく？ 花にはしない。");
+        if (!ok) return;
+      }
+      state.session = makeEmptySession(state.session.partner);
+      state.bloomFailed = false;
+      saveSession();
+      renderCafe();
+      setNotice("新しい席についた。", "ok");
+    }
+
+    function renderBook() {
+      const entries = state.hanacho.slice().reverse();
+      el.bookCount.textContent = `${state.hanacho.length}輪`;
+      if (!state.selectedFlowerId && entries.length) {
+        state.selectedFlowerId = entries[0].id;
+      }
+
+      el.bookList.textContent = "";
+      if (!entries.length) {
+        const empty = document.createElement("p");
+        empty.className = "empty";
+        empty.textContent = "まだ花はない。喫茶店で会話してから花にする。";
+        el.bookList.append(empty);
+        renderBookDetail(null);
+        return;
+      }
+
+      entries.forEach((entry) => {
+        const item = document.createElement("button");
+        item.type = "button";
+        item.className = "book-item";
+        item.setAttribute("aria-current", String(entry.id === state.selectedFlowerId));
+        item.addEventListener("click", () => {
+          state.selectedFlowerId = entry.id;
+          renderBook();
+        });
+
+        const mini = document.createElement("span");
+        mini.className = "mini-flower";
+        mini.innerHTML = renderFlowerSvg(entry.svg_params, entry.id, true);
+
+        const text = document.createElement("span");
+        text.className = "book-item-text";
+        const name = document.createElement("strong");
+        name.textContent = displayFlowerName(entry);
+        const meta = document.createElement("span");
+        meta.textContent = `${entry.date} / ${PARTNER_LABELS[entry.partner] || entry.partner}`;
+        text.append(name, meta);
+        item.append(mini, text);
+        el.bookList.append(item);
+      });
+
+      const selected = state.hanacho.find((entry) => entry.id === state.selectedFlowerId) || entries[0];
+      renderBookDetail(selected);
+    }
+
+    function renderBookDetail(entry) {
+      el.bookDetail.textContent = "";
+      if (!entry) {
+        const emptyPanel = document.createElement("div");
+        emptyPanel.className = "panel";
+        const inner = document.createElement("div");
+        inner.className = "panel-inner empty";
+        inner.textContent = "花を咲かせると、ここにカードが開く。";
+        emptyPanel.append(inner);
+        el.bookDetail.append(emptyPanel);
+        return;
+      }
+
+      const card = document.createElement("article");
+      card.className = "vintage-card";
+      const grid = document.createElement("div");
+      grid.className = "detail-grid";
+
+      const art = document.createElement("div");
+      const mainImage = document.createElement("div");
+      mainImage.className = "specimen-frame";
+      if (entry.image_dataurl) {
+        const img = document.createElement("img");
+        img.alt = `${displayFlowerName(entry)}の生成画像`;
+        img.src = entry.image_dataurl;
+        mainImage.append(img);
+      } else {
+        mainImage.innerHTML = renderFlowerSvg(entry.svg_params, entry.id, false);
+      }
+      art.append(mainImage);
+
+      const support = document.createElement("div");
+      support.className = "photo-frame";
+      if (entry.image_dataurl) {
+        const svgLabel = document.createElement("div");
+        svgLabel.className = "subtle";
+        svgLabel.textContent = "畑に並ぶSVG花";
+        support.append(svgLabel);
+        const svgSmall = document.createElement("div");
+        svgSmall.className = "mini-flower";
+        svgSmall.innerHTML = renderFlowerSvg(entry.svg_params, entry.id, true);
+        support.append(svgSmall);
+      } else {
+        const fallback = document.createElement("p");
+        fallback.className = "subtle";
+        fallback.textContent = entry.image_error ? `画像生成は失敗したけど、SVG花で咲いてる。${entry.image_error}` : "画像はまだない。SVG花で咲いてる。";
+        support.append(fallback);
+      }
+
+      const imageActions = document.createElement("div");
+      imageActions.className = "row";
+      const imageLabel = document.createElement("label");
+      imageLabel.className = "file-input";
+      imageLabel.textContent = entry.image_dataurl ? "画像を貼り替える" : "画像を貼る";
+      const imageInput = document.createElement("input");
+      imageInput.type = "file";
+      imageInput.accept = "image/*";
+      imageInput.className = "hidden";
+      imageInput.addEventListener("change", () => attachImage(entry, imageInput.files && imageInput.files[0]));
+      imageLabel.append(imageInput);
+      imageActions.append(imageLabel);
+      const retryImage = document.createElement("button");
+      retryImage.type = "button";
+      retryImage.textContent = "絵を咲かせ直す";
+      retryImage.addEventListener("click", () => regenerateImage(entry));
+      imageActions.append(retryImage);
+      if (entry.image_dataurl) {
+        const removeImage = document.createElement("button");
+        removeImage.type = "button";
+        removeImage.textContent = "画像を剥がす";
+        removeImage.addEventListener("click", () => {
+          delete entry.image_dataurl;
+          saveHanacho();
+          renderBook();
+          setNotice("画像を剥がした。SVG花が主役に戻った。", "ok");
+        });
+        imageActions.append(removeImage);
+      }
+      support.append(imageActions);
+      art.append(support);
+
+      const copy = document.createElement("div");
+      copy.className = "detail-copy";
+      const meta = document.createElement("div");
+      meta.className = "detail-meta";
+      meta.append(pill(entry.date), pill(PARTNER_LABELS[entry.partner] || entry.partner), pill(`ID ${entry.id.slice(0, 8)}`));
+      const title = document.createElement("h2");
+      title.className = "flower-title";
+      title.textContent = displayFlowerName(entry);
+      const tag = document.createElement("div");
+      tag.className = "tagline";
+      tag.textContent = entry.hanakotoba;
+      const zukan = document.createElement("p");
+      zukan.className = "zukan";
+      zukan.textContent = entry.zukanbun;
+      const actions = document.createElement("div");
+      actions.className = "row";
+      const deleteButton = document.createElement("button");
+      deleteButton.type = "button";
+      deleteButton.className = "danger";
+      deleteButton.textContent = "この花を削除";
+      deleteButton.addEventListener("click", () => deleteFlower(entry.id));
+      actions.append(deleteButton);
+      copy.append(meta, title, tag, zukan, actions);
+
+      grid.append(art, copy);
+      card.append(grid);
+      el.bookDetail.append(card);
+    }
+
+    function renderField() {
+      el.fieldCount.textContent = `${state.hanacho.length}輪`;
+      el.fieldGrid.textContent = "";
+      if (!state.hanacho.length) {
+        const empty = document.createElement("p");
+        empty.className = "empty";
+        empty.textContent = "畑はまだ空いてる。";
+        el.fieldGrid.append(empty);
+        return;
+      }
+
+      state.hanacho.forEach((entry) => {
+        const plot = document.createElement("button");
+        plot.type = "button";
+        plot.className = "plot";
+        plot.innerHTML = renderFlowerSvg(entry.svg_params, entry.id, true);
+        const name = document.createElement("span");
+        name.textContent = displayFlowerName(entry);
+        plot.append(name);
+        plot.addEventListener("click", () => {
+          state.selectedFlowerId = entry.id;
+          showView("book");
+        });
+        el.fieldGrid.append(plot);
+      });
+    }
+
+    function renderSettings() {
+      el.providerButtons.forEach((button) => {
+        button.classList.toggle("active-choice", button.dataset.provider === state.settings.provider);
+      });
+      el.roleProviderButtons.forEach((button) => {
+        button.classList.toggle("active-choice", state.settings.partner_provider[button.dataset.roleProvider] === button.dataset.roleValue);
+      });
+      el.hanaProviderButtons.forEach((button) => {
+        button.classList.toggle("active-choice", state.settings.hana_provider === button.dataset.hanaProvider);
+      });
+      el.personaButtons.forEach((button) => {
+        button.classList.toggle("active-choice", button.dataset.persona === state.settingsPersona);
+      });
+      const provider = state.settings.provider;
+      el.apiKeyInput.value = state.settings[provider].key || "";
+      el.modelInput.value = state.settings[provider].model || "";
+      el.imageModelInput.value = state.settings.image_gen.model || "";
+      el.imageQualityInput.value = state.settings.image_gen.quality || "high";
+      el.imageSizeInput.value = state.settings.image_gen.size || "1024x1536";
+      el.imageStyleInput.value = state.settings.image_gen.style_prompt || DEFAULT_IMAGE_STYLE_PROMPT;
+      el.toggleImageGenButton.textContent = state.settings.image_gen.enabled ? "画像生成をOFFにする" : "画像生成をONにする";
+      el.flowerMemoryCountInput.value = String(state.settings.flower_memory_count);
+      el.memoLimitInput.value = String(state.settings.memo_limit);
+      el.personaInput.value = state.settings.personas[state.settingsPersona] || DEFAULT_PERSONAS[state.settingsPersona];
+      renderMemos();
+    }
+
+    function captureSettingsForm() {
+      if (!el.apiKeyInput) return;
+      const provider = state.settings.provider;
+      state.settings[provider].key = el.apiKeyInput.value.trim();
+      state.settings[provider].model = el.modelInput.value.trim();
+      state.settings.image_gen.model = el.imageModelInput.value.trim();
+      state.settings.image_gen.quality = oneOf(el.imageQualityInput.value, ["high", "medium", "low", "auto"], "high");
+      state.settings.image_gen.size = oneOf(el.imageSizeInput.value, ["1024x1536", "1024x1024", "1536x1024", "auto"], "1024x1536");
+      state.settings.image_gen.style_prompt = el.imageStyleInput.value;
+      state.settings.flower_memory_count = clampInt(el.flowerMemoryCountInput.value, 0, 30, 5);
+      state.settings.memo_limit = clampInt(el.memoLimitInput.value, 1, 300, 50);
+      state.settings.personas[state.settingsPersona] = el.personaInput.value;
+      trimMemosToLimit();
+    }
+
+    function renderMemos() {
+      el.memoCount.textContent = `${state.memos.length}行`;
+      el.memoList.textContent = "";
+      if (!state.memos.length) {
+        const empty = document.createElement("p");
+        empty.className = "empty";
+        empty.textContent = "まだ覚え書きはない。花にした時や、ここで直接足した時に増えていく。";
+        el.memoList.append(empty);
+        return;
+      }
+
+      state.memos
+        .slice()
+        .sort((a, b) => Number(Boolean(b.pinned)) - Number(Boolean(a.pinned)) || String(b.date).localeCompare(String(a.date)))
+        .forEach((memo) => {
+          const item = document.createElement("div");
+          item.className = "memo-item";
+          const label = document.createElement("label");
+          label.textContent = memo.pinned ? "覚え書き（ピン留め）" : "覚え書き";
+          const input = document.createElement("textarea");
+          input.value = memo.text;
+          input.addEventListener("input", () => {
+            memo.text = asShortText(input.value);
+            saveMemos();
+          });
+          label.append(input);
+
+          const actions = document.createElement("div");
+          actions.className = "memo-actions";
+          const pinButton = document.createElement("button");
+          pinButton.type = "button";
+          pinButton.textContent = memo.pinned ? "ピン解除" : "ピン留め";
+          pinButton.addEventListener("click", () => {
+            memo.pinned = !memo.pinned;
+            saveMemos();
+            renderSettings();
+          });
+          const deleteButton = document.createElement("button");
+          deleteButton.type = "button";
+          deleteButton.className = "danger";
+          deleteButton.textContent = "削除";
+          deleteButton.addEventListener("click", () => {
+            state.memos = state.memos.filter((itemMemo) => itemMemo.id !== memo.id);
+            saveMemos();
+            renderSettings();
+            setNotice("覚え書きを消した。", "ok");
+          });
+          const meta = document.createElement("span");
+          meta.className = "subtle";
+          meta.textContent = `${memo.date} / ${PARTNER_LABELS[memo.partner] || "共有"}`;
+          actions.append(pinButton, deleteButton, meta);
+          item.append(label, actions);
+          el.memoList.append(item);
+        });
+    }
+
+    function ensureProviderReady(provider, label) {
+      captureSettingsForm();
+      saveSettings();
+      if (!state.settings[provider].key) {
+        setNotice(`設定で${label}用の${providerName(provider)} APIキーを入れてから使える。`, "error");
+        showView("settings");
+        return false;
+      }
+      if (!state.settings[provider].model) {
+        setNotice(`設定で${label}用の${providerName(provider)} モデル名を入れてから使える。`, "error");
+        showView("settings");
+        return false;
+      }
+      return true;
+    }
+
+    function ensureChatReady() {
+      return ensureProviderReady(getChatProvider(state.session.partner), `${PARTNER_LABELS[state.session.partner]}の会話AI`);
+    }
+
+    function ensureFlowerReady() {
+      return ensureProviderReady(getFlowerProvider(state.session.partner), "花係AI");
+    }
+
+    function getChatProvider(partner) {
+      return state.settings.partner_provider[partner] === "anthropic" ? "anthropic" : "openai";
+    }
+
+    function getFlowerProvider(partner) {
+      const configured = state.settings.hana_provider;
+      if (configured === "anthropic" || configured === "openai") return configured;
+      return getChatProvider(partner);
+    }
+
+    function providerName(provider) {
+      return provider === "anthropic" ? "Anthropic" : "OpenAI";
+    }
+
+    async function callChatAI() {
+      const provider = getChatProvider(state.session.partner);
+      const systemPrompt = buildChatSystemPrompt(state.session.partner);
+      return callProviderText({
+        provider,
+        systemPrompt,
+        messages: state.session.messages.map((message) => ({
+          role: message.role,
+          content: message.content
+        })),
+        maxTokens: 1000
+      });
+    }
+
+    async function callFlowerAI() {
+      const transcript = state.session.messages.map((message) => {
+        const speaker = message.role === "user" ? "ユーザー" : PARTNER_LABELS[state.session.partner];
+        return `${speaker}: ${message.content}`;
+      }).join("\n\n");
+      const provider = getFlowerProvider(state.session.partner);
+      const text = await callProviderText({
+        provider,
+        systemPrompt: FLOWER_SYSTEM_PROMPT,
+        messages: [
+          {
+            role: "user",
+            content: `会話相手: ${PARTNER_LABELS[state.session.partner]}\n現在日時: ${formatLocalDateTimeForPrompt()}\n\n会話ログ:\n${transcript}`
+          }
+        ],
+        maxTokens: 1800
+      });
+      return parseJsonFromAI(text);
+    }
+
+    async function callProviderText({ provider, systemPrompt, messages, maxTokens }) {
+      const settings = state.settings[provider];
+      try {
+        if (provider === "openai") {
+          return await callOpenAI({
+            key: settings.key,
+            model: settings.model,
+            systemPrompt,
+            messages,
+            maxTokens
+          });
+        }
+        return await callAnthropic({
+          key: settings.key,
+          model: settings.model,
+          systemPrompt,
+          messages,
+          maxTokens
+        });
+      } catch (error) {
+        error.apiProvider = provider;
+        error.apiModel = settings.model;
+        throw error;
+      }
+    }
+
+    async function callAnthropic({ key, model, systemPrompt, messages, maxTokens }) {
+      const response = await fetch("https://api.anthropic.com/v1/messages", {
+        method: "POST",
+        headers: {
+          "content-type": "application/json",
+          "x-api-key": key,
+          "anthropic-version": "2023-06-01",
+          "anthropic-dangerous-direct-browser-access": "true"
+        },
+        body: JSON.stringify({
+          model,
+          max_tokens: maxTokens,
+          system: systemPrompt,
+          messages: normalizeAnthropicMessages(messages)
+        })
+      });
+      const data = await readJsonResponse(response);
+      const text = Array.isArray(data.content)
+        ? data.content.filter((block) => block && block.type === "text").map((block) => block.text || "").join("\n")
+        : "";
+      if (!text) throw new Error("Anthropic response did not include text content.");
+      return text;
+    }
+
+    async function callOpenAI({ key, model, systemPrompt, messages, maxTokens }) {
+      const response = await fetch("https://api.openai.com/v1/chat/completions", {
+        method: "POST",
+        headers: {
+          "content-type": "application/json",
+          "authorization": `Bearer ${key}`
+        },
+        body: JSON.stringify({
+          model,
+          max_completion_tokens: maxTokens,
+          messages: [
+            { role: "system", content: systemPrompt },
+            ...messages.map((message) => ({
+              role: message.role,
+              content: message.content
+            }))
+          ]
+        })
+      });
+      const data = await readJsonResponse(response);
+      const text = data && data.choices && data.choices[0] && data.choices[0].message
+        ? data.choices[0].message.content
+        : "";
+      if (!text) throw new Error("OpenAI response did not include message content.");
+      return text;
+    }
+
+    async function generateImageForFlower(entry) {
+      if (!state.settings.image_gen.enabled) {
+        throw new Error("IMAGE_GENERATION_DISABLED");
+      }
+      if (state.settings.image_gen.provider !== "openai") {
+        throw new Error("Only OpenAI image generation is implemented.");
+      }
+      const key = state.settings.openai.key;
+      const model = state.settings.image_gen.model;
+      if (!key) throw new Error("OpenAI image API key is missing.");
+      if (!model) throw new Error("OpenAI image model is missing.");
+
+      const b64 = await callOpenAIImage({
+        key,
+        model,
+        prompt: buildImagePrompt(entry),
+        quality: state.settings.image_gen.quality || "high",
+        size: state.settings.image_gen.size || "1024x1536"
+      });
+      return resizeDataUrlToJpeg(`data:image/png;base64,${b64}`);
+    }
+
+    async function callOpenAIImage({ key, model, prompt, quality, size }) {
+      const requestBody = {
+        model,
+        prompt,
+        size,
+        quality
+      };
+      try {
+        const response = await fetch("https://api.openai.com/v1/images/generations", {
+          method: "POST",
+          headers: {
+            "content-type": "application/json",
+            "authorization": `Bearer ${key}`
+          },
+          body: JSON.stringify(requestBody)
+        });
+        const data = await readJsonResponse(response);
+        const b64 = data && data.data && data.data[0] ? data.data[0].b64_json : "";
+        if (!b64) {
+          throw new Error("Image response did not include b64_json.");
+        }
+        return b64;
+      } catch (error) {
+        if (shouldRetryImageWithAuto(error, quality, size)) {
+          return callOpenAIImage({ key, model, prompt, quality: "auto", size: "auto" });
+        }
+        error.apiProvider = "openai";
+        error.apiModel = model;
+        throw error;
+      }
+    }
+
+    function shouldRetryImageWithAuto(error, quality, size) {
+      const message = String(error && error.message ? error.message : "").toLowerCase();
+      return (quality !== "auto" || size !== "auto")
+        && error && error.apiStatus === 400
+        && (message.includes("quality") || message.includes("size") || message.includes("unsupported parameter"));
+    }
+
+    function buildImagePrompt(entry) {
+      const style = state.settings.image_gen.style_prompt || DEFAULT_IMAGE_STYLE_PROMPT;
+      return [
+        style,
+        "",
+        "Specific flower:",
+        entry.image_prompt || "a quiet imaginary flower",
+        "",
+        `Flower name: ${entry.name} (${entry.reading})`,
+        `Flower meaning: ${entry.hanakotoba}`,
+        "",
+        "Composition requirements:",
+        "- one full blooming flower, centered and tall in portrait composition",
+        "- translucent petals glowing from within, luminous dew beads, fine petal veins",
+        "- elegant golden curling stems, filigree tendrils, jewel-like heart or orb details",
+        "- magical reward garden atmosphere with soft background flowers and warm bokeh lights",
+        "- premium finished illustration, high detail, high polish, soft depth of field",
+        "- avoid flat vector style, avoid simple icon style, avoid plain white background",
+        "- no readable typography, no labels, no watermark, no logo"
+      ].join("\n");
+    }
+
+    async function readJsonResponse(response) {
+      let data = null;
+      try {
+        data = await response.json();
+      } catch (error) {
+        if (!response.ok) {
+          const failed = new Error(`API request failed: ${response.status}`);
+          failed.apiStatus = response.status;
+          throw failed;
+        }
+        throw error;
+      }
+      if (!response.ok) {
+        const message = data && data.error && data.error.message ? data.error.message : `API request failed: ${response.status}`;
+        const failed = new Error(message);
+        failed.apiStatus = response.status;
+        throw failed;
+      }
+      return data;
+    }
+
+    function normalizeAnthropicMessages(messages) {
+      const normalized = [];
+      messages.forEach((message) => {
+        const role = message.role === "assistant" ? "assistant" : "user";
+        const previous = normalized[normalized.length - 1];
+        if (previous && previous.role === role) {
+          previous.content += `\n\n${message.content}`;
+        } else {
+          normalized.push({ role, content: message.content });
+        }
+      });
+      return normalized.length ? normalized : [{ role: "user", content: "こんにちは。" }];
+    }
+
+    function buildChatSystemPrompt(partner) {
+      return [
+        state.settings.personas[partner] || DEFAULT_PERSONAS[partner],
+        COMMON_CHAT_RULES,
+        buildRecentFlowersPrompt(),
+        buildMemosPrompt(),
+        `現在の日時: ${formatLocalDateTimeForPrompt()}`,
+        `相手の名前: 里美`,
+        `この会話相手: ${PARTNER_LABELS[partner]}`
+      ].filter(Boolean).join("\n\n---\n\n");
+    }
+
+    function buildRecentFlowersPrompt() {
+      const count = clampInt(state.settings.flower_memory_count, 0, 30, 5);
+      if (!count || !state.hanacho.length) return "";
+      const flowers = state.hanacho.slice(-count).reverse();
+      const lines = flowers.map((entry) => `- ${entry.date} / ${PARTNER_LABELS[entry.partner] || entry.partner} / ${displayFlowerName(entry)} / 花ことば: ${entry.hanakotoba}`);
+      return [
+        "これはこの喫茶店の花帖に最近咲いた花。会話の中で自然に触れてよいが、毎回言及する必要はない。",
+        ...lines
+      ].join("\n");
+    }
+
+    function buildMemosPrompt() {
+      if (!state.memos.length) return "";
+      const lines = state.memos
+        .filter((memo) => memo && memo.text)
+        .map((memo) => `- ${memo.text}`);
+      if (!lines.length) return "";
+      return [
+        "これはあなたがこの人について覚えていること。自然に踏まえてよいが、列挙したり毎回言及したりしない。",
+        ...lines
+      ].join("\n");
+    }
+
+    function parseJsonFromAI(text) {
+      let cleaned = String(text || "").trim();
+      if (cleaned.startsWith("```")) {
+        cleaned = cleaned.replace(/^```(?:json)?\s*/i, "").replace(/\s*```$/i, "").trim();
+      }
+      const firstBrace = cleaned.indexOf("{");
+      const lastBrace = cleaned.lastIndexOf("}");
+      if (firstBrace !== -1 && lastBrace !== -1 && lastBrace > firstBrace) {
+        cleaned = cleaned.slice(firstBrace, lastBrace + 1);
+      }
+      try {
+        return JSON.parse(cleaned);
+      } catch (error) {
+        const failed = new Error(`AI_JSON_PARSE_FAILED: ${error.message}`);
+        throw failed;
+      }
+    }
+
+    function normalizeFlower(rawFlower) {
+      if (!rawFlower || typeof rawFlower !== "object") return null;
+      return {
+        name: asShortText(rawFlower.name) || "名なしの花",
+        reading: asShortText(rawFlower.reading) || "ななしのはな",
+        hanakotoba: asShortText(rawFlower.hanakotoba) || "まだ言葉になる前",
+        zukanbun: asLongText(rawFlower.zukanbun) || "喫茶の余白に咲いた花。図鑑には、まだ小さな文字でだけ記されている。",
+        image_prompt: asLongText(rawFlower.image_prompt) || "a quiet imaginary flower with soft glowing petals and dew",
+        svg_params: normalizeSvgParams(rawFlower.svg_params)
+      };
+    }
+
+    function normalizeSvgParams(raw) {
+      const params = raw && typeof raw === "object" ? raw : {};
+      return {
+        petal_count: clampInt(params.petal_count, 4, 12, 6),
+        petal_shape: oneOf(params.petal_shape, ["round", "pointed", "frilled", "teardrop"], "round"),
+        petal_color_outer: safeColor(params.petal_color_outer, "#9b6ab6"),
+        petal_color_inner: safeColor(params.petal_color_inner, "#f2c879"),
+        glow_color: safeColor(params.glow_color, "#f7d58a"),
+        glow_strength: clampNumber(params.glow_strength, 0, 1, 0.35),
+        center_type: oneOf(params.center_type, ["heart", "orb", "star", "spiral"], "orb"),
+        center_color: safeColor(params.center_color, "#6a3f71"),
+        dew_count: clampInt(params.dew_count, 0, 12, 2),
+        stem_curve: clampNumber(params.stem_curve, -1, 1, 0),
+        leaf_count: clampInt(params.leaf_count, 0, 5, 2),
+        layer_count: clampInt(params.layer_count, 1, 3, 1)
+      };
+    }
+
+    function renderFlowerSvg(rawParams, id, mini) {
+      const params = normalizeSvgParams(rawParams);
+      const seed = hashString(String(id || "flower"));
+      const defsId = `f${String(id || "x").replace(/[^a-z0-9]/gi, "").slice(0, 12)}${mini ? "m" : "d"}`;
+      const petals = [];
+      const backPetals = [];
+      const cx = 120;
+      const cy = 92;
+      const baseRx = mini ? 20 : 24;
+      const baseRy = mini ? 46 : 58;
+      for (let i = 0; i < params.petal_count; i += 1) {
+        const angle = (360 / params.petal_count) * i + (180 / params.petal_count);
+        backPetals.push(petalElement(params.petal_shape, cx, cy + 3, baseRx * 1.18, baseRy * 1.08, angle, 0.34, defsId, "petalBack"));
+      }
+      for (let layer = 0; layer < params.layer_count; layer += 1) {
+        const count = params.petal_count;
+        const scale = 1 - layer * 0.14;
+        const offset = layer * (180 / count);
+        for (let i = 0; i < count; i += 1) {
+          const angle = (360 / count) * i + offset;
+          const opacity = 0.96 - layer * 0.16;
+          petals.push(petalElement(params.petal_shape, cx, cy, baseRx * scale, baseRy * scale, angle, opacity, defsId));
+        }
+      }
+
+      const leafs = [];
+      for (let i = 0; i < params.leaf_count; i += 1) {
+        const side = i % 2 === 0 ? -1 : 1;
+        const y = 140 + i * 14;
+        const x = 118 + side * 2;
+        leafs.push(`<path d="M${x} ${y} C${x + side * 28} ${y - 18}, ${x + side * 48} ${y - 8}, ${x + side * 58} ${y + 8} C${x + side * 28} ${y + 16}, ${x + side * 12} ${y + 12}, ${x} ${y}Z" fill="#849760" stroke="#b7954c" stroke-width="1" opacity="0.9"/>`);
+      }
+
+      const dew = [];
+      const rng = seededRandom(seed);
+      const bokehRng = seededRandom(seed + 202);
+      const bokeh = [];
+      const bokehColors = ["#c9a3f5", "#f2b7d8", "#ffd9a0", "#8fa8f0"];
+      for (let i = 0; i < (mini ? 3 : 8); i += 1) {
+        const bx = 24 + bokehRng() * 192;
+        const by = 22 + bokehRng() * 190;
+        const br = 2.4 + bokehRng() * 7;
+        const bc = bokehColors[Math.floor(bokehRng() * bokehColors.length)];
+        bokeh.push(`<circle cx="${bx.toFixed(1)}" cy="${by.toFixed(1)}" r="${br.toFixed(1)}" fill="${bc}" opacity="${(0.08 + bokehRng() * 0.12).toFixed(2)}"/>`);
+      }
+      for (let i = 0; i < params.dew_count; i += 1) {
+        const angle = rng() * Math.PI * 2;
+        const radius = 30 + rng() * 34;
+        const x = cx + Math.cos(angle) * radius;
+        const y = cy + Math.sin(angle) * radius * 0.72;
+        const r = 2 + rng() * 3.2;
+        dew.push(`<g opacity="0.7"><circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="${r.toFixed(1)}" fill="#ffffff" opacity="0.38"/><circle cx="${(x - r * 0.28).toFixed(1)}" cy="${(y - r * 0.32).toFixed(1)}" r="${(r * 0.28).toFixed(1)}" fill="#ffffff" opacity="0.82"/></g>`);
+      }
+
+      const curve = params.stem_curve * 36;
+      const glowOpacity = (0.14 + params.glow_strength * 0.38).toFixed(2);
+      return `
+        <svg viewBox="0 0 240 260" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="花の絵">
+          <defs>
+            <radialGradient id="${defsId}petal" cx="42%" cy="36%" r="72%">
+              <stop offset="0%" stop-color="${params.petal_color_inner}"/>
+              <stop offset="100%" stop-color="${params.petal_color_outer}"/>
+            </radialGradient>
+            <radialGradient id="${defsId}petalBack" cx="42%" cy="36%" r="72%">
+              <stop offset="0%" stop-color="${params.petal_color_outer}"/>
+              <stop offset="100%" stop-color="#241733"/>
+            </radialGradient>
+            <radialGradient id="${defsId}glow" cx="50%" cy="50%" r="50%">
+              <stop offset="0%" stop-color="${params.glow_color}" stop-opacity="${glowOpacity}"/>
+              <stop offset="100%" stop-color="${params.glow_color}" stop-opacity="0"/>
+            </radialGradient>
+            <filter id="${defsId}blur">
+              <feGaussianBlur stdDeviation="${(4 + params.glow_strength * 8).toFixed(1)}"/>
+            </filter>
+          </defs>
+          ${bokeh.join("")}
+          <rect x="10" y="4" width="220" height="226" rx="108" fill="url(#${defsId}glow)" filter="url(#${defsId}blur)" opacity="${(params.glow_strength * 0.42).toFixed(2)}"/>
+          <rect x="28" y="20" width="184" height="192" rx="90" fill="url(#${defsId}glow)" filter="url(#${defsId}blur)" opacity="${(params.glow_strength * 0.72).toFixed(2)}"/>
+          <rect x="48" y="42" width="144" height="150" rx="72" fill="url(#${defsId}glow)" filter="url(#${defsId}blur)" opacity="${params.glow_strength}"/>
+          <path d="M120 116 C${120 + curve} 160, ${100 + curve * 0.4} 196, 122 238" fill="none" stroke="#6f8753" stroke-width="8" stroke-linecap="round"/>
+          ${leafs.join("")}
+          <g stroke="#b7954c" stroke-width="0.9" stroke-linejoin="round">
+            ${backPetals.join("")}
+          </g>
+          <g stroke="#b7954c" stroke-width="1.15" stroke-linejoin="round">
+            ${petals.join("")}
+          </g>
+          ${centerElement(params.center_type, cx, cy, params.center_color)}
+          ${dew.join("")}
+        </svg>`;
+    }
+
+    function petalElement(shape, cx, cy, rx, ry, angle, opacity, defsId, gradientName = "petal") {
+      const fill = `url(#${defsId}${gradientName})`;
+      if (shape === "pointed") {
+        return `<path d="M${cx} ${cy} C${cx - rx} ${cy - ry * 0.42}, ${cx - rx * 0.34} ${cy - ry * 0.9}, ${cx} ${cy - ry} C${cx + rx * 0.34} ${cy - ry * 0.9}, ${cx + rx} ${cy - ry * 0.42}, ${cx} ${cy}Z" fill="${fill}" opacity="${opacity}" transform="rotate(${angle} ${cx} ${cy})"/>`;
+      }
+      if (shape === "frilled") {
+        return `<path d="M${cx} ${cy} C${cx - rx * 1.12} ${cy - ry * 0.3}, ${cx - rx * 0.74} ${cy - ry * 0.72}, ${cx - rx * 0.22} ${cy - ry * 0.72} C${cx - rx * 0.05} ${cy - ry * 1.05}, ${cx + rx * 0.12} ${cy - ry * 1.05}, ${cx + rx * 0.25} ${cy - ry * 0.72} C${cx + rx * 0.78} ${cy - ry * 0.72}, ${cx + rx * 1.12} ${cy - ry * 0.28}, ${cx} ${cy}Z" fill="${fill}" opacity="${opacity}" transform="rotate(${angle} ${cx} ${cy})"/>`;
+      }
+      if (shape === "teardrop") {
+        return `<path d="M${cx} ${cy} C${cx - rx * 0.9} ${cy - ry * 0.18}, ${cx - rx * 0.68} ${cy - ry * 0.72}, ${cx} ${cy - ry} C${cx + rx * 0.68} ${cy - ry * 0.72}, ${cx + rx * 0.9} ${cy - ry * 0.18}, ${cx} ${cy}Z" fill="${fill}" opacity="${opacity}" transform="rotate(${angle} ${cx} ${cy})"/>`;
+      }
+      return `<ellipse cx="${cx}" cy="${cy - ry * 0.45}" rx="${rx}" ry="${ry * 0.55}" fill="${fill}" opacity="${opacity}" transform="rotate(${angle} ${cx} ${cy})"/>`;
+    }
+
+    function centerElement(type, cx, cy, color) {
+      if (type === "heart") {
+        return `<path d="M${cx} ${cy + 12} C${cx - 24} ${cy - 6}, ${cx - 12} ${cy - 24}, ${cx} ${cy - 11} C${cx + 12} ${cy - 24}, ${cx + 24} ${cy - 6}, ${cx} ${cy + 12}Z" fill="${color}" stroke="#b7954c" stroke-width="1.4"/>`;
+      }
+      if (type === "star") {
+        const points = [];
+        for (let i = 0; i < 10; i += 1) {
+          const angle = -Math.PI / 2 + i * Math.PI / 5;
+          const r = i % 2 === 0 ? 19 : 8;
+          points.push(`${(cx + Math.cos(angle) * r).toFixed(1)},${(cy + Math.sin(angle) * r).toFixed(1)}`);
+        }
+        return `<polygon points="${points.join(" ")}" fill="${color}" stroke="#b7954c" stroke-width="1.4"/>`;
+      }
+      if (type === "spiral") {
+        return `<g fill="none" stroke="${color}" stroke-width="5" stroke-linecap="round"><path d="M${cx + 16} ${cy} C${cx + 16} ${cy - 16}, ${cx - 12} ${cy - 18}, ${cx - 13} ${cy + 1} C${cx - 13} ${cy + 18}, ${cx + 14} ${cy + 15}, ${cx + 9} ${cy + 2}"/></g><circle cx="${cx}" cy="${cy}" r="21" fill="none" stroke="#b7954c" stroke-width="1.2"/>`;
+      }
+      return `<circle cx="${cx}" cy="${cy}" r="18" fill="${color}" stroke="#b7954c" stroke-width="1.4"/><circle cx="${cx - 5}" cy="${cy - 6}" r="5" fill="#fff4ca" opacity="0.36"/>`;
+    }
+
+    async function attachImage(entry, file) {
+      if (!file) return;
+      try {
+        const dataUrl = await resizeImageToDataUrl(file);
+        entry.image_dataurl = dataUrl;
+        delete entry.image_error;
+        saveHanacho();
+        renderBook();
+        setNotice("画像を貼った。", "ok");
+      } catch (error) {
+        console.error(error);
+        setNotice("画像を貼れへんかった。別の画像で試してみて。", "error");
+      }
+    }
+
+    function resizeImageToDataUrl(file) {
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onerror = () => reject(new Error("FileReader failed."));
+        reader.onload = () => {
+          const img = new Image();
+          img.onerror = () => reject(new Error("Image load failed."));
+          img.onload = () => {
+            const maxSide = 800;
+            const scale = Math.min(1, maxSide / Math.max(img.width, img.height));
+            const width = Math.max(1, Math.round(img.width * scale));
+            const height = Math.max(1, Math.round(img.height * scale));
+            const canvas = document.createElement("canvas");
+            canvas.width = width;
+            canvas.height = height;
+            const ctx = canvas.getContext("2d");
+            ctx.drawImage(img, 0, 0, width, height);
+            resolve(canvas.toDataURL("image/jpeg", 0.8));
+          };
+          img.src = String(reader.result || "");
+        };
+        reader.readAsDataURL(file);
+      });
+    }
+
+    function resizeDataUrlToJpeg(dataUrl) {
+      return new Promise((resolve, reject) => {
+        const img = new Image();
+        img.onerror = () => reject(new Error("Generated image load failed."));
+        img.onload = () => {
+          const maxSide = 800;
+          const scale = Math.min(1, maxSide / Math.max(img.width, img.height));
+          const width = Math.max(1, Math.round(img.width * scale));
+          const height = Math.max(1, Math.round(img.height * scale));
+          const canvas = document.createElement("canvas");
+          canvas.width = width;
+          canvas.height = height;
+          const ctx = canvas.getContext("2d");
+          ctx.drawImage(img, 0, 0, width, height);
+          resolve(canvas.toDataURL("image/jpeg", 0.8));
+        };
+        img.src = dataUrl;
+      });
+    }
+
+    async function regenerateImage(entry) {
+      captureSettingsForm();
+      saveSettings();
+      if (!state.settings.image_gen.enabled) {
+        setNotice("画像生成がOFFになってる。設定でONにすると咲かせ直せる。", "error");
+        return;
+      }
+      setNotice("絵を咲かせ直しています…", "loading");
+      try {
+        entry.image_dataurl = await generateImageForFlower(entry);
+        delete entry.image_error;
+        saveHanacho();
+        renderBook();
+        setNotice("絵を咲かせ直した。", "ok");
+      } catch (error) {
+        console.error(error);
+        entry.image_error = imageErrorMessage(error);
+        saveHanacho();
+        renderBook();
+        setNotice(`絵を咲かせ直せへんかった。SVG花は残ってる。\n${entry.image_error}`, "error");
+      }
+    }
+
+    function imageErrorMessage(error) {
+      const status = error && error.apiStatus ? `HTTP ${error.apiStatus}: ` : "";
+      const message = String(error && error.message ? error.message : "画像生成エラー").slice(0, 160);
+      return `${status}${message}`;
+    }
+
+    function deleteFlower(id) {
+      const entry = state.hanacho.find((flower) => flower.id === id);
+      if (!entry) return;
+      const ok = confirm(`${displayFlowerName(entry)}を花帖から削除する？`);
+      if (!ok) return;
+      state.hanacho = state.hanacho.filter((flower) => flower.id !== id);
+      state.selectedFlowerId = state.hanacho.length ? state.hanacho[state.hanacho.length - 1].id : null;
+      saveHanacho();
+      renderBook();
+      renderField();
+      setNotice("花を削除した。", "ok");
+    }
+
+    function exportData() {
+      captureSettingsForm();
+      saveSettings();
+      const data = {
+        app: "Cafe Bloom",
+        version: APP_VERSION,
+        exportedAt: new Date().toISOString(),
+        settings: state.settings,
+        current_session: state.session,
+        hanacho: state.hanacho,
+        memos: state.memos
+      };
+      const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = `cafe-bloom-${formatDate().replace(/[: ]/g, "-")}.json`;
+      document.body.append(link);
+      link.click();
+      link.remove();
+      URL.revokeObjectURL(url);
+      setNotice("JSONを書き出した。", "ok");
+    }
+
+    function importData(event) {
+      const file = event.target.files && event.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.addEventListener("load", () => {
+        try {
+          const data = JSON.parse(String(reader.result || "{}"));
+          state.settings = normalizeSettings(data.settings);
+          state.session = normalizeSession(data.current_session || data.session);
+          state.hanacho = normalizeHanacho(data.hanacho);
+          state.memos = normalizeMemos(data.memos);
+          state.selectedFlowerId = state.hanacho.length ? state.hanacho[state.hanacho.length - 1].id : null;
+          saveSettings();
+          saveSession();
+          saveHanacho();
+          saveMemos();
+          renderAll();
+          showView("book");
+          setNotice("JSONから復元した。", "ok");
+        } catch (error) {
+          console.error(error);
+          setNotice("JSONを読み込めへんかった。ファイルを確認してもう一回。", "error");
+        } finally {
+          event.target.value = "";
+        }
+      });
+      reader.readAsText(file);
+    }
+
+    function deleteAllData() {
+      const first = confirm("Cafe Bloomの設定、進行中の会話、花帖を全部消す？");
+      if (!first) return;
+      const second = confirm("ほんまに全部消す？ APIキーと貼った画像も消える。");
+      if (!second) return;
+      localStorage.removeItem(LS_SETTINGS);
+      localStorage.removeItem(LS_SESSION);
+      localStorage.removeItem(LS_HANACHO);
+      localStorage.removeItem(LS_MEMOS);
+      state.settings = defaultSettings();
+      state.session = makeEmptySession("master");
+      state.hanacho = [];
+      state.memos = [];
+      state.selectedFlowerId = null;
+      renderAll();
+      showView("cafe");
+      setNotice("全部消した。", "ok");
+    }
+
+    function loadSettings() {
+      const existing = readLocalJson(LS_SETTINGS);
+      if (existing) return normalizeSettings(existing);
+      const old = readLocalJson(OLD_SETTINGS);
+      if (old) {
+        const migrated = defaultSettings();
+        migrated.provider = old.provider === "anthropic" ? "anthropic" : "openai";
+        migrated.anthropic.key = String(old.apiKeyAnthropic || "");
+        migrated.openai.key = String(old.apiKeyOpenai || "");
+        migrated.anthropic.model = String(old.modelAnthropic || "");
+        migrated.openai.model = String(old.modelOpenai || "");
+        migrated.partner_provider.master = migrated.provider;
+        migrated.partner_provider.rira = migrated.provider;
+        return normalizeSettings(migrated);
+      }
+      return defaultSettings();
+    }
+
+    function normalizeSettings(raw) {
+      const base = defaultSettings();
+      const settings = raw && typeof raw === "object" ? raw : {};
+      base.provider = settings.provider === "anthropic" ? "anthropic" : "openai";
+      base.anthropic = {
+        key: String(settings.anthropic && settings.anthropic.key || ""),
+        model: String(settings.anthropic && settings.anthropic.model || "")
+      };
+      base.openai = {
+        key: String(settings.openai && settings.openai.key || ""),
+        model: String(settings.openai && settings.openai.model || "")
+      };
+      base.partner_provider = {
+        master: normalizeProvider(settings.partner_provider && settings.partner_provider.master, base.provider),
+        rira: normalizeProvider(settings.partner_provider && settings.partner_provider.rira, base.provider)
+      };
+      base.hana_provider = ["same_as_partner", "anthropic", "openai"].includes(settings.hana_provider)
+        ? settings.hana_provider
+        : "same_as_partner";
+      const savedImageStyle = String(settings.image_gen && settings.image_gen.style_prompt || "");
+      const stylePrompt = !savedImageStyle || savedImageStyle.trim() === OLD_IMAGE_STYLE_PROMPT.trim()
+        ? DEFAULT_IMAGE_STYLE_PROMPT
+        : savedImageStyle;
+      base.image_gen = {
+        enabled: !(settings.image_gen && settings.image_gen.enabled === false),
+        provider: "openai",
+        model: String(settings.image_gen && settings.image_gen.model || "gpt-image-2"),
+        quality: oneOf(settings.image_gen && settings.image_gen.quality, ["high", "medium", "low", "auto"], "high"),
+        size: oneOf(settings.image_gen && settings.image_gen.size, ["1024x1536", "1024x1024", "1536x1024", "auto"], "1024x1536"),
+        style_prompt: stylePrompt
+      };
+      base.flower_memory_count = clampInt(settings.flower_memory_count, 0, 30, 5);
+      base.memo_limit = clampInt(settings.memo_limit, 1, 300, 50);
+      base.personas = {
+        master: String(settings.personas && settings.personas.master || DEFAULT_PERSONAS.master),
+        rira: String(settings.personas && settings.personas.rira || DEFAULT_PERSONAS.rira)
+      };
+      return base;
+    }
+
+    function defaultSettings() {
+      return {
+        provider: "openai",
+        anthropic: { key: "", model: "" },
+        openai: { key: "", model: "" },
+        partner_provider: {
+          master: "openai",
+          rira: "openai"
+        },
+        hana_provider: "same_as_partner",
+        image_gen: {
+          enabled: true,
+          provider: "openai",
+          model: "gpt-image-2",
+          quality: "high",
+          size: "1024x1536",
+          style_prompt: DEFAULT_IMAGE_STYLE_PROMPT
+        },
+        flower_memory_count: 5,
+        memo_limit: 50,
+        personas: {
+          master: DEFAULT_PERSONAS.master,
+          rira: DEFAULT_PERSONAS.rira
+        }
+      };
+    }
+
+    function saveSettings() {
+      safeSetLocalJson(LS_SETTINGS, state.settings);
+    }
+
+    function loadSession() {
+      return normalizeSession(readLocalJson(LS_SESSION));
+    }
+
+    function normalizeSession(raw) {
+      const session = raw && typeof raw === "object" ? raw : {};
+      const partner = session.partner === "rira" ? "rira" : "master";
+      const messages = Array.isArray(session.messages)
+        ? session.messages
+            .filter((message) => message && typeof message === "object" && ["user", "assistant"].includes(message.role))
+            .map((message) => ({
+              role: message.role,
+              content: asLongText(message.content),
+              time: String(message.time || new Date().toISOString())
+            }))
+            .filter((message) => message.content)
+        : [];
+      return { partner, messages };
+    }
+
+    function makeEmptySession(partner) {
+      return { partner: partner === "rira" ? "rira" : "master", messages: [] };
+    }
+
+    function saveSession() {
+      safeSetLocalJson(LS_SESSION, state.session);
+    }
+
+    function loadMemos() {
+      return normalizeMemos(readLocalJson(LS_MEMOS));
+    }
+
+    function normalizeMemos(raw) {
+      if (!Array.isArray(raw)) return [];
+      return raw
+        .filter((memo) => memo && typeof memo === "object")
+        .map((memo) => ({
+          id: String(memo.id || makeId()),
+          text: asShortText(memo.text),
+          pinned: memo.pinned === true,
+          date: String(memo.date || formatDate()),
+          partner: memo.partner === "master" || memo.partner === "rira" ? memo.partner : "shared"
+        }))
+        .filter((memo) => memo.text);
+    }
+
+    function saveMemos() {
+      safeSetLocalJson(LS_MEMOS, state.memos);
+    }
+
+    function normalizeMemoTexts(raw) {
+      if (!Array.isArray(raw)) return [];
+      return raw
+        .map((item) => asShortText(item))
+        .filter(Boolean)
+        .slice(0, 2);
+    }
+
+    function addMemos(texts, partner, pinned) {
+      normalizeMemoTexts(texts).forEach((text) => addMemo(text, pinned, partner));
+      saveMemos();
+    }
+
+    function addMemo(text, pinned = false, partner = "shared") {
+      const normalizedText = asShortText(text);
+      if (!normalizedText) return;
+      const existing = state.memos.find((memo) => memo.text === normalizedText);
+      if (existing) {
+        existing.date = formatDate();
+        existing.partner = partner === "master" || partner === "rira" ? partner : existing.partner;
+        existing.pinned = existing.pinned || pinned;
+      } else {
+        state.memos.push({
+          id: makeId(),
+          text: normalizedText,
+          pinned: pinned === true,
+          date: formatDate(),
+          partner: partner === "master" || partner === "rira" ? partner : "shared"
+        });
+      }
+      trimMemosToLimit();
+      saveMemos();
+    }
+
+    function trimMemosToLimit() {
+      const limit = clampInt(state.settings.memo_limit, 1, 300, 50);
+      while (state.memos.length > limit) {
+        const oldestIndex = state.memos.reduce((candidateIndex, memo, index) => {
+          if (memo.pinned) return candidateIndex;
+          if (candidateIndex === -1) return index;
+          return String(memo.date).localeCompare(String(state.memos[candidateIndex].date)) < 0 ? index : candidateIndex;
+        }, -1);
+        if (oldestIndex === -1) break;
+        state.memos.splice(oldestIndex, 1);
+      }
+      saveMemos();
+    }
+
+    function loadHanacho() {
+      const existing = readLocalJson(LS_HANACHO);
+      if (existing) return normalizeHanacho(existing);
+      const old = readLocalJson(OLD_HANACHO);
+      if (old) return migrateOldHanacho(old);
+      return [];
+    }
+
+    function normalizeHanacho(raw) {
+      if (!Array.isArray(raw)) return [];
+      return raw
+        .filter((entry) => entry && typeof entry === "object")
+        .map((entry) => ({
+          id: String(entry.id || makeId()),
+          date: String(entry.date || formatDate()),
+          partner: entry.partner === "rira" ? "rira" : "master",
+          name: asShortText(entry.name) || "名なしの花",
+          reading: asShortText(entry.reading) || "ななしのはな",
+          hanakotoba: asShortText(entry.hanakotoba) || "まだ言葉になる前",
+          zukanbun: asLongText(entry.zukanbun),
+          image_prompt: asLongText(entry.image_prompt) || "a quiet imaginary flower with soft glowing petals and dew",
+          svg_params: normalizeSvgParams(entry.svg_params),
+          image_dataurl: typeof entry.image_dataurl === "string" && entry.image_dataurl.startsWith("data:image/")
+            ? entry.image_dataurl
+            : (typeof entry.photo_dataurl === "string" && entry.photo_dataurl.startsWith("data:image/") ? entry.photo_dataurl : undefined),
+          image_error: entry.image_error ? asShortText(entry.image_error) : undefined
+        }));
+    }
+
+    function migrateOldHanacho(raw) {
+      if (!Array.isArray(raw)) return [];
+      return raw.map((entry) => {
+        const flower = entry && entry.flower && typeof entry.flower === "object" ? entry.flower : {};
+        return {
+          id: String(entry.id || makeId()),
+          date: String(entry.date || formatDate()),
+          partner: "master",
+          name: asShortText(flower.name) || "名なしの花",
+          reading: "よみ未設定",
+          hanakotoba: asShortText(flower.meaning) || "まだ言葉になる前",
+          zukanbun: asLongText(flower.zukan_text),
+          image_prompt: "a quiet imaginary flower with soft glowing petals and dew",
+          svg_params: normalizeSvgParams({
+            petal_count: 5,
+            petal_shape: "round",
+            petal_color_outer: safeColor(flower.color, "#8a6db0"),
+            petal_color_inner: "#f2c879",
+            glow_color: "#f3ca7a",
+            glow_strength: 0.25,
+            center_type: "orb",
+            center_color: "#59405f",
+            dew_count: 2,
+            stem_curve: 0,
+            leaf_count: 2,
+            layer_count: 1
+          })
+        };
+      });
+    }
+
+    function saveHanacho() {
+      safeSetLocalJson(LS_HANACHO, state.hanacho);
+    }
+
+    function readLocalJson(key) {
+      try {
+        const raw = localStorage.getItem(key);
+        return raw ? JSON.parse(raw) : null;
+      } catch (error) {
+        return null;
+      }
+    }
+
+    function safeSetLocalJson(key, value) {
+      try {
+        localStorage.setItem(key, JSON.stringify(value));
+      } catch (error) {
+        console.error(error);
+        setNotice("保存がいっぱい。エクスポートして整理してな。", "error");
+      }
+    }
+
+    function makeChatMessage(role, content) {
+      return {
+        role,
+        content,
+        time: new Date().toISOString()
+      };
+    }
+
+    function makeId() {
+      if (window.crypto && crypto.randomUUID) {
+        return crypto.randomUUID();
+      }
+      return `flower-${Date.now()}-${Math.random().toString(16).slice(2)}`;
+    }
+
+    function formatDate(date = new Date()) {
+      const pad = (number) => String(number).padStart(2, "0");
+      return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())} ${pad(date.getHours())}:${pad(date.getMinutes())}`;
+    }
+
+    function formatLocalDateTimeForPrompt(date = new Date()) {
+      const weekdays = ["日", "月", "火", "水", "木", "金", "土"];
+      const hour = date.getHours();
+      let period = "昼";
+      if (hour < 5) period = "深夜";
+      else if (hour < 11) period = "朝";
+      else if (hour < 16) period = "昼";
+      else if (hour < 19) period = "夕方";
+      else period = "夜";
+      return `${formatDate(date)}（${weekdays[date.getDay()]}曜） / 時間帯: ${period}`;
+    }
+
+    function displayFlowerName(entry) {
+      return entry.reading ? `${entry.name}（${entry.reading}）` : entry.name;
+    }
+
+    function pill(text) {
+      const span = document.createElement("span");
+      span.className = "pill";
+      span.textContent = text;
+      return span;
+    }
+
+    function setNotice(message, kind = "") {
+      el.notice.textContent = message || "";
+      el.notice.classList.toggle("is-error", kind === "error");
+      el.notice.classList.toggle("is-ok", kind === "ok");
+      el.notice.classList.toggle("is-loading", kind === "loading");
+    }
+
+    function formatApiError(error) {
+      const provider = error && error.apiProvider ? error.apiProvider : state.settings.provider;
+      const shownProviderName = providerName(provider);
+      const model = error && error.apiModel ? error.apiModel : (state.settings[provider] && state.settings[provider].model || "未設定");
+      const status = error && error.apiStatus ? Number(error.apiStatus) : 0;
+      const message = String(error && error.message ? error.message : "").trim();
+      const lower = message.toLowerCase();
+      let hint = "APIキー、モデル名、通信状況を確認してみて。";
+
+      if (status === 401 || status === 403) {
+        hint = "APIキーが違う、期限切れ、または権限が足りない可能性が高い。";
+      } else if (status === 400 && lower.includes("unsupported parameter")) {
+        hint = "このモデルに合わないAPIパラメータがある。";
+      } else if (status === 404) {
+        hint = "モデル名が違う可能性が高い。設定画面のモデル名を見直してみて。";
+      } else if (status === 429) {
+        hint = "利用上限、残高、レート制限に当たっている可能性がある。";
+      } else if (status >= 500) {
+        hint = "API側が一時的に不安定かもしれない。少し置いて試してみて。";
+      } else if (lower.includes("failed to fetch") || lower.includes("networkerror") || lower.includes("load failed")) {
+        hint = "ブラウザがAPI通信を止めた可能性がある。ネット接続やブラウザのNetworkタブを見てみて。";
+      }
+
+      const statusText = status ? `HTTP ${status}` : "通信エラー";
+      const raw = message ? `\n詳細: ${message.slice(0, 180)}` : "";
+      return `うまく返事を受け取れへんかった。会話は残してある。\n原因の手がかり: ${hint}\nプロバイダ: ${shownProviderName} / モデル: ${model} / ${statusText}${raw}`;
+    }
+
+    function formatFlowerError(error) {
+      const message = String(error && error.message ? error.message : "");
+      if (message.includes("AI_JSON_PARSE_FAILED")) {
+        return "花がうまく咲かなかった。AIの返事がJSONから崩れたみたい。会話は残してあるから、もう一度花にできる。";
+      }
+      if (message.includes("FLOWER_EMPTY")) {
+        return "花がうまく咲かなかった。花係から花が返ってこなかった。会話は残してあるから、もう一度花にできる。";
+      }
+      return formatApiError(error);
+    }
+
+    function asShortText(value) {
+      return String(value || "").replace(/\s+/g, " ").trim().slice(0, 140);
+    }
+
+    function asLongText(value) {
+      return String(value || "").trim().slice(0, 4000);
+    }
+
+    function safeColor(value, fallback) {
+      const color = String(value || "").trim();
+      return /^#[0-9a-f]{6}$/i.test(color) ? color : fallback;
+    }
+
+    function oneOf(value, options, fallback) {
+      return options.includes(value) ? value : fallback;
+    }
+
+    function normalizeProvider(value, fallback = "openai") {
+      return value === "anthropic" ? "anthropic" : (value === "openai" ? "openai" : fallback);
+    }
+
+    function clampNumber(value, min, max, fallback) {
+      const number = Number(value);
+      if (!Number.isFinite(number)) return fallback;
+      return Math.min(max, Math.max(min, number));
+    }
+
+    function clampInt(value, min, max, fallback) {
+      return Math.round(clampNumber(value, min, max, fallback));
+    }
+
+    function hashString(text) {
+      let hash = 2166136261;
+      for (let i = 0; i < text.length; i += 1) {
+        hash ^= text.charCodeAt(i);
+        hash = Math.imul(hash, 16777619);
+      }
+      return hash >>> 0;
+    }
+
+    function seededRandom(seed) {
+      let value = seed || 1;
+      return () => {
+        value += 0x6D2B79F5;
+        let t = value;
+        t = Math.imul(t ^ (t >>> 15), t | 1);
+        t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+        return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+      };
+    }
+  </script>
+</body>
+</html>
