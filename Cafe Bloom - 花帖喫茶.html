@@ -245,6 +245,8 @@
     }
 
     .app {
+      position: relative;
+      z-index: 1;
       width: min(1120px, calc(100% - 32px));
       min-height: 100vh;
       margin: 0 auto;
@@ -252,6 +254,38 @@
       display: grid;
       grid-template-rows: auto auto 1fr;
       gap: 18px;
+    }
+
+    #bgScene {
+      position: fixed;
+      inset: 0;
+      z-index: 0;
+      pointer-events: none;
+    }
+
+    #bgScene .scene {
+      position: absolute;
+      inset: 0;
+      opacity: 0;
+      transition: opacity 600ms ease;
+    }
+
+    #bgScene svg {
+      display: block;
+      width: 100%;
+      height: 100%;
+    }
+
+    html:not([data-theme]) #bgScene .scene-classic {
+      opacity: 1;
+    }
+
+    html[data-theme="garden"] #bgScene .scene-garden {
+      opacity: 1;
+    }
+
+    html[data-theme="diner"] #bgScene .scene-diner {
+      opacity: 1;
     }
 
     .topbar {
@@ -985,6 +1019,19 @@
       }
     }
 
+    .grass-cell .cat-sprite.is-sleeping {
+      animation: catBreath 4.5s ease-in-out infinite;
+    }
+
+    @keyframes catBreath {
+      0%, 100% {
+        transform: scale(1);
+      }
+      50% {
+        transform: scale(1.03);
+      }
+    }
+
     .shop-list {
       display: flex;
       flex-direction: column;
@@ -1337,11 +1384,95 @@
   </style>
 </head>
 <body>
+  <div id="bgScene" aria-hidden="true">
+    <div class="scene scene-classic">
+      <svg viewBox="0 0 1200 800" preserveAspectRatio="xMidYMax slice" xmlns="http://www.w3.org/2000/svg">
+        <circle cx="210" cy="150" r="150" fill="#f3ca7a" opacity="0.05"/>
+        <circle cx="990" cy="170" r="170" fill="#f3ca7a" opacity="0.05"/>
+        <path d="M210 0 L210 92" stroke="#120c08" stroke-width="4" opacity="0.5"/>
+        <path d="M180 92 L240 92 L228 130 L192 130 Z" fill="#120c08" opacity="0.55"/>
+        <ellipse cx="210" cy="140" rx="26" ry="9" fill="#f3ca7a" opacity="0.12"/>
+        <path d="M990 0 L990 112" stroke="#120c08" stroke-width="4" opacity="0.5"/>
+        <path d="M960 112 L1020 112 L1008 150 L972 150 Z" fill="#120c08" opacity="0.55"/>
+        <ellipse cx="990" cy="160" rx="26" ry="9" fill="#f3ca7a" opacity="0.12"/>
+        <rect x="0" y="712" width="1200" height="88" fill="#0e0906" opacity="0.6"/>
+        <path d="M120 712 L120 662 C120 642 136 630 158 630 L172 630 L172 712Z" fill="#0e0906" opacity="0.7"/>
+        <path d="M172 654 C188 650 194 664 182 670 L172 668Z" fill="#0e0906" opacity="0.7"/>
+        <rect x="260" y="688" width="64" height="24" rx="4" fill="#0e0906" opacity="0.7"/>
+        <rect x="270" y="666" width="44" height="22" rx="4" fill="#0e0906" opacity="0.7"/>
+        <path d="M1040 712 L1040 656 C1040 640 1056 632 1068 640 C1082 630 1096 640 1094 656 L1094 712Z" fill="#0e0906" opacity="0.7"/>
+        <path d="M150 620 C144 600 156 596 152 580 M166 618 C172 600 160 592 168 576" fill="none" stroke="#fff2d7" stroke-width="5" stroke-linecap="round" opacity="0.05"/>
+      </svg>
+    </div>
+    <div class="scene scene-garden">
+      <svg viewBox="0 0 1200 800" preserveAspectRatio="xMidYMax slice" xmlns="http://www.w3.org/2000/svg">
+        <circle cx="980" cy="130" r="120" fill="#ffe9b0" opacity="0.07"/>
+        <circle cx="980" cy="130" r="58" fill="#ffe9b0" opacity="0.12"/>
+        <circle cx="980" cy="130" r="44" fill="#fff4d2" opacity="0.5"/>
+        <circle cx="962" cy="120" r="9" fill="#e8d9b0" opacity="0.5"/>
+        <circle cx="994" cy="142" r="6" fill="#e8d9b0" opacity="0.4"/>
+        <g fill="#fff2d7">
+          <circle cx="90" cy="90" r="2.4" opacity="0.4"/><circle cx="240" cy="50" r="1.8" opacity="0.3"/>
+          <circle cx="380" cy="120" r="2.2" opacity="0.35"/><circle cx="520" cy="60" r="1.6" opacity="0.28"/>
+          <circle cx="660" cy="140" r="2" opacity="0.32"/><circle cx="760" cy="70" r="2.4" opacity="0.38"/>
+          <circle cx="150" cy="200" r="1.6" opacity="0.25"/><circle cx="480" cy="210" r="1.8" opacity="0.26"/>
+          <circle cx="840" cy="230" r="1.7" opacity="0.24"/><circle cx="1120" cy="90" r="2.2" opacity="0.35"/>
+          <circle cx="1060" cy="280" r="1.6" opacity="0.22"/><circle cx="320" cy="290" r="1.5" opacity="0.2"/>
+        </g>
+        <path d="M60 800 L60 560 C60 460 220 460 220 560 L220 800" fill="none" stroke="#120a1e" stroke-width="16" opacity="0.55"/>
+        <path d="M980 800 L980 590 C980 500 1130 500 1130 590 L1130 800" fill="none" stroke="#120a1e" stroke-width="16" opacity="0.55"/>
+        <g opacity="0.5">
+          <circle cx="64" cy="620" r="7" fill="#a482c9"/><circle cx="140" cy="484" r="7" fill="#c98ba5"/>
+          <circle cx="216" cy="600" r="7" fill="#d4a94e"/><circle cx="988" cy="640" r="7" fill="#c98ba5"/>
+          <circle cx="1055" cy="516" r="7" fill="#a482c9"/><circle cx="1126" cy="630" r="7" fill="#d4a94e"/>
+        </g>
+        <circle cx="330" cy="640" r="4" fill="#f3ca7a" opacity="0.5"/>
+        <circle cx="620" cy="700" r="3" fill="#f3ca7a" opacity="0.4"/>
+        <circle cx="870" cy="660" r="4" fill="#f3ca7a" opacity="0.45"/>
+        <rect x="0" y="756" width="1200" height="44" fill="#0c0716" opacity="0.6"/>
+      </svg>
+    </div>
+    <div class="scene scene-diner">
+      <svg viewBox="0 0 1200 800" preserveAspectRatio="xMidYMax slice" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <linearGradient id="dinerSunset" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stop-color="#d94f4f" stop-opacity="0"/>
+            <stop offset="100%" stop-color="#e8763c" stop-opacity="0.16"/>
+          </linearGradient>
+        </defs>
+        <rect x="0" y="420" width="1200" height="280" fill="url(#dinerSunset)"/>
+        <circle cx="600" cy="700" r="150" fill="#ffb36b" opacity="0.1"/>
+        <rect x="0" y="700" width="1200" height="100" fill="#0d0a0e" opacity="0.65"/>
+        <g fill="#0d0a0e" opacity="0.7">
+          <rect x="150" y="640" width="6" height="60"/>
+          <rect x="128" y="648" width="50" height="4"/>
+          <rect x="640" y="660" width="5" height="40"/>
+          <rect x="623" y="666" width="39" height="3"/>
+          <rect x="1010" y="652" width="6" height="48"/>
+          <rect x="989" y="658" width="48" height="4"/>
+        </g>
+        <text x="105" y="140" font-family="sans-serif" font-size="54" font-weight="bold" letter-spacing="10" fill="none" stroke="#5fd0c7" stroke-width="2" opacity="0.35">CAFE</text>
+        <text x="105" y="196" font-family="sans-serif" font-size="34" font-weight="bold" letter-spacing="16" fill="none" stroke="#ff9d94" stroke-width="1.6" opacity="0.3">BLOOM</text>
+        <circle cx="330" cy="120" r="90" fill="#5fd0c7" opacity="0.04"/>
+        <g opacity="0.5">
+          <rect x="0" y="788" width="1200" height="12" fill="#141118"/>
+          <rect x="0" y="788" width="40" height="12" fill="#e8e0d0" opacity="0.25"/><rect x="80" y="788" width="40" height="12" fill="#e8e0d0" opacity="0.25"/>
+          <rect x="160" y="788" width="40" height="12" fill="#e8e0d0" opacity="0.25"/><rect x="240" y="788" width="40" height="12" fill="#e8e0d0" opacity="0.25"/>
+          <rect x="320" y="788" width="40" height="12" fill="#e8e0d0" opacity="0.25"/><rect x="400" y="788" width="40" height="12" fill="#e8e0d0" opacity="0.25"/>
+          <rect x="480" y="788" width="40" height="12" fill="#e8e0d0" opacity="0.25"/><rect x="560" y="788" width="40" height="12" fill="#e8e0d0" opacity="0.25"/>
+          <rect x="640" y="788" width="40" height="12" fill="#e8e0d0" opacity="0.25"/><rect x="720" y="788" width="40" height="12" fill="#e8e0d0" opacity="0.25"/>
+          <rect x="800" y="788" width="40" height="12" fill="#e8e0d0" opacity="0.25"/><rect x="880" y="788" width="40" height="12" fill="#e8e0d0" opacity="0.25"/>
+          <rect x="960" y="788" width="40" height="12" fill="#e8e0d0" opacity="0.25"/><rect x="1040" y="788" width="40" height="12" fill="#e8e0d0" opacity="0.25"/>
+          <rect x="1120" y="788" width="40" height="12" fill="#e8e0d0" opacity="0.25"/>
+        </g>
+      </svg>
+    </div>
+  </div>
   <div class="app">
     <header class="topbar">
       <div class="brand">
         <h1>Cafe Bloom — 花帖喫茶 —</h1>
-        <p>好きなだけ喋って、一番の重心から一輪咲かせる / v0.6.0 棚の限定品</p>
+        <p>好きなだけ喋って、一番の重心から一輪咲かせる / v0.7.0 背景と猫のくらし</p>
       </div>
       <nav class="nav" aria-label="画面">
         <button type="button" data-nav="cafe">喫茶店</button>
@@ -1626,7 +1757,7 @@
   </div>
 
   <script>
-    const APP_VERSION = "v0.6.0";
+    const APP_VERSION = "v0.7.0";
     const LS_SETTINGS = "cb_settings";
     const LS_SESSION = "cb_current_session";
     const LS_HANACHO = "cb_hanacho";
@@ -1720,6 +1851,28 @@
           <path d="M34 60 Q46 55 58 60 T82 60" fill="none" stroke="#bcd4f0" stroke-width="2.4" stroke-linecap="round" opacity="0.7"/>
           <ellipse cx="76" cy="52" rx="11" ry="6" fill="#849760" stroke="#6f8753" stroke-width="1.5"/>
           <circle cx="73" cy="50" r="2.6" fill="#f2b7d8"/>
+        </svg>`
+      },
+      nekobed: {
+        name: "ねこのベッド",
+        flavor: "ふかふか。猫はここで丸くなるのが好きらしい。",
+        cost: { petals: 5, mitsu: 1 },
+        svg: `<svg viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+          <ellipse cx="60" cy="82" rx="38" ry="17" fill="#6e4a30" stroke="#4a2f1c" stroke-width="2.2"/>
+          <ellipse cx="60" cy="76" rx="38" ry="16" fill="#8a5e3c" stroke="#4a2f1c" stroke-width="2.2"/>
+          <ellipse cx="60" cy="78" rx="28" ry="10" fill="#e8d9c0"/>
+          <path d="M40 74 Q46 70 52 74 M56 72 Q62 68 68 72 M72 74 Q78 70 84 74" fill="none" stroke="#c9b295" stroke-width="1.6" stroke-linecap="round"/>
+        </svg>`
+      },
+      milk: {
+        name: "ミルクの皿",
+        flavor: "置いておくと、猫の足がこちらへ向く。",
+        cost: { petals: 2, mitsu: 1 },
+        svg: `<svg viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+          <ellipse cx="60" cy="82" rx="27" ry="10" fill="#b0a898" stroke="#7a7264" stroke-width="1.8"/>
+          <ellipse cx="60" cy="77" rx="27" ry="10" fill="#eee6da" stroke="#9a9184" stroke-width="2"/>
+          <ellipse cx="60" cy="77" rx="19" ry="6.4" fill="#fdfaf2"/>
+          <ellipse cx="53" cy="75.5" rx="5" ry="1.8" fill="#ffffff" opacity="0.8"/>
         </svg>`
       },
       shokudai: {
@@ -2799,7 +2952,7 @@ JSON形式:
         const gardenHasLife = garden.plots.some((plot) => plot.plant) || Object.keys(garden.decoPlaced).length > 0;
         if (!gardenHasLife) return false;
         if (!garden.catNextVisitAt) {
-          garden.catNextVisitAt = now + randBetween(times.catVisitMin, times.catVisitMax);
+          garden.catNextVisitAt = now + nextCatVisitDelay(times);
           return true;
         }
         if (now >= garden.catNextVisitAt || resident) {
@@ -2824,7 +2977,7 @@ JSON形式:
       const cat = garden.cat;
       if (!resident && cat.leaveAt && now >= cat.leaveAt) {
         garden.cat = null;
-        garden.catNextVisitAt = now + randBetween(times.catVisitMin, times.catVisitMax);
+        garden.catNextVisitAt = now + nextCatVisitDelay(times);
         if (state.gardenSelectedPlot === "cat") state.gardenSelectedPlot = null;
         setNotice("猫はどこかへ帰っていった。また来てくれるといい。", "");
         return true;
@@ -2849,9 +3002,19 @@ JSON形式:
 
     function pickCatCell(exclude) {
       const all = Array.from({ length: 16 }, (_, index) => `deco-${index}`);
+      const beds = all.filter((cellId) => state.garden.decoPlaced[cellId] === "nekobed" && cellId !== exclude);
+      if (beds.length && Math.random() < 0.75) {
+        return beds[Math.floor(Math.random() * beds.length)];
+      }
       const empty = all.filter((cellId) => !state.garden.decoPlaced[cellId] && cellId !== exclude);
       const pool = empty.length ? empty : all.filter((cellId) => cellId !== exclude);
       return pool[Math.floor(Math.random() * pool.length)] || "deco-0";
+    }
+
+    function nextCatVisitDelay(times) {
+      const milkPlaced = Object.values(state.garden.decoPlaced).includes("milk");
+      const delay = randBetween(times.catVisitMin, times.catVisitMax);
+      return milkPlaced ? Math.round(delay / 2) : delay;
     }
 
     function rollCatGift() {
@@ -2983,8 +3146,9 @@ JSON形式:
         cell.setAttribute("aria-label", "飾りを置ける草地");
       }
       if (catHere) {
-        cell.insertAdjacentHTML("beforeend", `<span class="cat-sprite">${catSvg(state.garden.catCoat)}</span>`);
-        cell.setAttribute("aria-label", `${catDisplayName()}がいる`);
+        const pose = key === "nekobed" ? "sleep" : "sit";
+        cell.insertAdjacentHTML("beforeend", `<span class="cat-sprite${pose === "sleep" ? " is-sleeping" : ""}">${catSvg(state.garden.catCoat, pose)}</span>`);
+        cell.setAttribute("aria-label", pose === "sleep" ? `${catDisplayName()}がベッドで眠っている` : `${catDisplayName()}がいる`);
       }
       if (cellId === state.gardenSelectedPlot || (catHere && state.gardenSelectedPlot === "cat")) {
         cell.classList.add("is-selected");
@@ -2996,8 +3160,22 @@ JSON形式:
       return cell;
     }
 
-    function catSvg(coatKey) {
+    function catSvg(coatKey, pose = "sit") {
       const coat = CAT_COATS[coatKey] || CAT_COATS.mike;
+      if (pose === "sleep") {
+        return `<svg viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="眠っている猫">
+          <ellipse cx="58" cy="74" rx="33" ry="21" fill="${coat.base}" stroke="#2c2320" stroke-width="2.4"/>
+          <path d="M28 82 C40 94 76 96 90 84" fill="none" stroke="${coat.tail}" stroke-width="8" stroke-linecap="round"/>
+          <circle cx="79" cy="66" r="16" fill="${coat.base}" stroke="#2c2320" stroke-width="2.4"/>
+          <path d="M68 55 C66 50 66 45 67 42 C72 44 76 47 78 51Z" fill="${coat.base}" stroke="#2c2320" stroke-width="2" stroke-linejoin="round"/>
+          <path d="M88 53 C90 48 91 44 90 40 C85 42 81 45 79 49Z" fill="${coat.base}" stroke="#2c2320" stroke-width="2" stroke-linejoin="round"/>
+          <path d="M72 66 Q74 69 77 67 M83 66 Q85 69 88 67" fill="none" stroke="#2c2320" stroke-width="1.8" stroke-linecap="round"/>
+          <ellipse cx="80" cy="72" rx="2.4" ry="1.8" fill="${coat.nose}"/>
+          <ellipse cx="70" cy="74" rx="3.8" ry="2.4" fill="#eda49b" opacity="0.45"/>
+          <text x="100" y="46" font-size="13" fill="#fff2d7" opacity="0.55" font-family="sans-serif">z</text>
+          <text x="107" y="34" font-size="9" fill="#fff2d7" opacity="0.4" font-family="sans-serif">z</text>
+        </svg>`;
+      }
       return `<svg viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="猫">
         <path d="M84 102 C100 104 108 92 101 80" fill="none" stroke="${coat.tail}" stroke-width="9" stroke-linecap="round"/>
         <path d="M60 64 C42 64 33 79 35 94 C37 105 46 110 60 110 C74 110 83 105 85 94 C87 79 78 64 60 64Z" fill="${coat.base}" stroke="#2c2320" stroke-width="2.4"/>
@@ -3170,6 +3348,9 @@ JSON形式:
       const hearts = "♥".repeat(Math.min(3, garden.catFriendship)) + "♡".repeat(Math.max(0, 3 - garden.catFriendship));
       container.append(paragraph(`なつき度 ${hearts}${resident ? "（この畑の家族）" : ""}`));
 
+      if (state.garden.decoPlaced[cat.cellId] === "nekobed") {
+        container.append(paragraph("ベッドで丸くなって眠っている。"));
+      }
       if (resident) {
         container.append(paragraph("畑に住み着いている。たまに散歩に出て、何か拾ってくる。"));
       } else {
