@@ -1270,6 +1270,64 @@
       z-index: 6;
     }
 
+    .sparkle-burst.sparkle-burst-iso {
+      inset: auto;
+      width: 0;
+      height: 0;
+      overflow: visible;
+    }
+
+    .garden-board.is-iso {
+      display: block;
+      position: relative;
+      padding: 8px 2px;
+    }
+
+    .garden-board.is-iso #isoBoard {
+      display: block;
+      width: 100%;
+      height: auto;
+    }
+
+    .iso-art,
+    .iso-ground {
+      pointer-events: none;
+    }
+
+    .iso-hit {
+      fill: transparent;
+      pointer-events: all;
+      cursor: pointer;
+      outline: none;
+    }
+
+    .iso-hit:focus-visible {
+      stroke: var(--amber-soft);
+      stroke-width: 2;
+    }
+
+    .iso-cell.grass:hover .iso-top {
+      fill: var(--grass-hover);
+      stroke: var(--grass-hover-border);
+    }
+
+    .iso-cell.plot:hover .iso-top {
+      filter: brightness(1.18);
+    }
+
+    .iso-glow {
+      animation: isoGlowPulse 2.6s ease-in-out infinite;
+    }
+
+    @keyframes isoGlowPulse {
+      0%, 100% {
+        opacity: 0.12;
+      }
+      50% {
+        opacity: 0.28;
+      }
+    }
+
     .sparkle-star {
       position: absolute;
       left: 50%;
@@ -1544,7 +1602,7 @@
     <header class="topbar">
       <div class="brand">
         <h1>Cafe Bloom — 花帖喫茶 —</h1>
-        <p>好きなだけ喋って、一番の重心から一輪咲かせる / v0.8.1 名前を選べる</p>
+        <p>好きなだけ喋って、一番の重心から一輪咲かせる / v0.9.0 箱庭の郷</p>
       </div>
       <nav class="nav" aria-label="画面">
         <button type="button" data-nav="cafe">喫茶店</button>
@@ -1633,6 +1691,7 @@
               <span class="garden-stat" id="gardenLevel">Lv.1</span>
               <span class="garden-stat" id="gardenWater">みずやり</span>
               <button type="button" class="garden-stat garden-stat-button" id="gardenFastButton">ふつう速度</button>
+              <button type="button" class="garden-stat garden-stat-button" id="gardenViewButton">箱庭ビュー</button>
             </div>
             <div class="garden-layout">
               <div id="gardenBoard" class="garden-board" role="group" aria-label="畑のマス"></div>
@@ -1838,7 +1897,7 @@
   </div>
 
   <script>
-    const APP_VERSION = "v0.8.1";
+    const APP_VERSION = "v0.9.0";
     const LS_SETTINGS = "cb_settings";
     const LS_SESSION = "cb_current_session";
     const LS_HANACHO = "cb_hanacho";
@@ -2297,6 +2356,7 @@ JSON形式:
       el.gardenLevel = document.getElementById("gardenLevel");
       el.gardenWater = document.getElementById("gardenWater");
       el.gardenFastButton = document.getElementById("gardenFastButton");
+      el.gardenViewButton = document.getElementById("gardenViewButton");
       el.gardenShelf = document.getElementById("gardenShelf");
       el.themeButtons = Array.from(document.querySelectorAll("[data-app-theme]"));
       el.apiKeyInput = document.getElementById("apiKeyInput");
@@ -2463,6 +2523,15 @@ JSON形式:
           renderSettings();
           setNotice(`世界観を「${THEME_LABELS[state.settings.theme]}」にした。`, "ok");
         });
+      });
+
+      el.gardenViewButton.addEventListener("click", () => {
+        state.settings.field_view = state.settings.field_view === "flat" ? "iso" : "flat";
+        saveSettings();
+        renderField();
+        setNotice(state.settings.field_view === "flat"
+          ? "フラット表示にした。押しやすさ優先のビュー。"
+          : "箱庭ビューにした。ななめ上から見下ろす小さな郷。", "ok");
       });
 
       el.gardenFastButton.addEventListener("click", () => {
@@ -3179,6 +3248,7 @@ JSON形式:
 
       el.gardenFastButton.textContent = state.garden.fast ? "おためし速度（約1分で満開）" : "ふつう速度（じっくり育つ）";
       el.gardenFastButton.classList.toggle("is-fast", state.garden.fast);
+      el.gardenViewButton.textContent = state.settings.field_view === "flat" ? "表示: フラット" : "表示: 箱庭";
     }
 
     function strongText(text) {
@@ -3196,6 +3266,17 @@ JSON形式:
     }
 
     function renderGardenBoard() {
+      const iso = (state.settings.field_view || "iso") !== "flat";
+      el.gardenBoard.classList.toggle("is-iso", iso);
+      if (iso) {
+        renderIsoBoard();
+      } else {
+        renderFlatBoard();
+      }
+      celebrateNewBlooms();
+    }
+
+    function renderFlatBoard() {
       el.gardenBoard.textContent = "";
       const unlocked = unlockedPlotCount();
       const now = Date.now();
@@ -3211,7 +3292,179 @@ JSON形式:
           }
         }
       }
-      celebrateNewBlooms();
+    }
+
+    const ISO_TILE_W = 96;
+    const ISO_TILE_H = 48;
+    const ISO_VIEW_W = 560;
+    const ISO_VIEW_H = 396;
+    const ISO_ORIGIN_X = 280;
+    const ISO_ORIGIN_Y = 88;
+
+    function isoCellCenter(col, row) {
+      return {
+        x: ISO_ORIGIN_X + (col - row) * (ISO_TILE_W / 2),
+        y: ISO_ORIGIN_Y + (col + row) * (ISO_TILE_H / 2)
+      };
+    }
+
+    function isoDiamondPath(cx, cy, tw = ISO_TILE_W, th = ISO_TILE_H) {
+      return `M${cx} ${cy - th / 2} L${cx + tw / 2} ${cy} L${cx} ${cy + th / 2} L${cx - tw / 2} ${cy} Z`;
+    }
+
+    function isoEmbedSprite(svgString, cx, baseY, size) {
+      const isFlower = svgString.includes('viewBox="0 0 240 260"');
+      const height = isFlower ? Math.round(size * 1.08) : size;
+      const shadow = `<ellipse class="iso-art" cx="${cx}" cy="${baseY - 3}" rx="${Math.round(size * 0.3)}" ry="${Math.round(size * 0.09)}" fill="rgba(0, 0, 0, 0.3)"/>`;
+      const sprite = svgString.replace("<svg ", `<svg class="iso-art" x="${cx - size / 2}" y="${baseY - height}" width="${size}" height="${height}" `);
+      return shadow + sprite;
+    }
+
+    function renderIsoBoard() {
+      const unlocked = unlockedPlotCount();
+      const now = Date.now();
+      const parts = [];
+      const cells = [];
+      let decoIndex = 0;
+      for (let row = 0; row < 5; row += 1) {
+        for (let col = 0; col < 5; col += 1) {
+          const isPlot = row >= 1 && row <= 3 && col >= 1 && col <= 3;
+          const cell = { col, row, isPlot };
+          if (isPlot) {
+            cell.plotIndex = (row - 1) * 3 + (col - 1);
+          } else {
+            cell.cellId = `deco-${decoIndex}`;
+            decoIndex += 1;
+          }
+          cells.push(cell);
+        }
+      }
+      cells.sort((a, b) => (a.col + a.row) - (b.col + b.row) || a.row - b.row);
+      cells.forEach((cell) => parts.push(isoCellMarkup(cell, unlocked, now)));
+      el.gardenBoard.innerHTML = `<svg id="isoBoard" viewBox="0 0 ${ISO_VIEW_W} ${ISO_VIEW_H}" xmlns="http://www.w3.org/2000/svg" role="group" aria-label="箱庭の畑">${parts.join("")}</svg>`;
+      el.gardenBoard.querySelectorAll(".iso-hit").forEach((hit) => {
+        const target = hit.dataset.target;
+        hit.addEventListener("click", () => handleIsoCellTap(target));
+        hit.addEventListener("keydown", (event) => {
+          if (event.key === "Enter" || event.key === " ") {
+            event.preventDefault();
+            handleIsoCellTap(target);
+          }
+        });
+      });
+    }
+
+    function isoCellMarkup(cell, unlocked, now) {
+      const { x: cx, y: cy } = isoCellCenter(cell.col, cell.row);
+      const pieces = [];
+      let hitTarget;
+      let ariaLabel;
+      let cellClass;
+      let selected;
+
+      if (cell.isPlot) {
+        const plot = state.garden.plots[cell.plotIndex];
+        const locked = cell.plotIndex >= unlocked;
+        hitTarget = plot.id;
+        cellClass = "plot";
+        selected = plot.id === state.gardenSelectedPlot;
+        pieces.push(isoPlotGround(cx, cy, locked, plot.plant && now < plot.plant.wetUntil));
+        if (locked) {
+          ariaLabel = `未開放の区画。レベル${cell.plotIndex - GARDEN_BASE_PLOTS + 2}で使える`;
+          pieces.push(`<text class="iso-art" x="${cx}" y="${cy + 4}" text-anchor="middle" font-size="12" fill="rgba(255, 242, 215, 0.4)" font-family="sans-serif">Lv.${cell.plotIndex - GARDEN_BASE_PLOTS + 2}</text>`);
+        } else if (!plot.plant) {
+          ariaLabel = "空いた区画。押すと植えるものを選べる";
+          pieces.push(`<text class="iso-art" x="${cx}" y="${cy + 6}" text-anchor="middle" font-size="18" fill="rgba(255, 242, 215, 0.4)" font-family="sans-serif">＋</text>`);
+        } else {
+          const plant = plot.plant;
+          const stage = plantStage(plant);
+          ariaLabel = `「${plant.name}」 ${GARDEN_STAGE_NAMES[stage]}`;
+          const baseY = cy + Math.round(ISO_TILE_H * 0.18);
+          if (stage === 3) {
+            pieces.push(`<ellipse class="iso-art iso-glow" cx="${cx}" cy="${baseY - 36}" rx="38" ry="44" fill="var(--amber-soft)"/>`);
+            pieces.push(isoEmbedSprite(renderFlowerSvg(plant.svg_params, `${plot.id}iso`, true), cx, baseY, 84));
+            pieces.push(`<g class="iso-art"><rect x="${cx + 16}" y="${baseY - 90}" width="38" height="16" rx="8" fill="rgba(24, 18, 13, 0.78)" stroke="rgba(243, 202, 122, 0.55)"/><text x="${cx + 35}" y="${baseY - 78}" text-anchor="middle" font-size="10" fill="var(--amber-soft)" font-family="sans-serif">収穫</text></g>`);
+          } else {
+            pieces.push(isoEmbedSprite(gardenStageSvg(plant, stage), cx, baseY, 56));
+          }
+        }
+      } else {
+        const cellId = cell.cellId;
+        const key = state.garden.decoPlaced[cellId];
+        const catHere = state.garden.cat && state.garden.cat.cellId === cellId;
+        hitTarget = catHere ? "cat" : cellId;
+        cellClass = "grass";
+        selected = cellId === state.gardenSelectedPlot || (catHere && state.gardenSelectedPlot === "cat");
+        pieces.push(`<path class="iso-ground iso-top" d="${isoDiamondPath(cx, cy)}" fill="rgba(255, 255, 255, 0.035)" stroke="rgba(255, 255, 255, 0.05)" stroke-width="1"/>`);
+        const baseY = cy + Math.round(ISO_TILE_H * 0.16);
+        if (key && GARDEN_DECOS[key]) {
+          ariaLabel = `飾り「${GARDEN_DECOS[key].name}」`;
+          pieces.push(isoEmbedSprite(GARDEN_DECOS[key].svg, cx, baseY, 66));
+        } else {
+          ariaLabel = "飾りを置ける草地";
+        }
+        if (catHere) {
+          const pose = key === "nekobed" ? "sleep" : "sit";
+          const catBase = key === "nekobed" ? baseY - 8 : baseY;
+          ariaLabel = pose === "sleep" ? `${catDisplayName()}がベッドで眠っている` : `${catDisplayName()}がいる`;
+          pieces.push(isoEmbedSprite(catSvg(state.garden.catCoat, pose), cx, catBase, 54));
+        }
+      }
+
+      if (selected) {
+        pieces.push(`<path class="iso-art" d="${isoDiamondPath(cx, cy, ISO_TILE_W + 8, ISO_TILE_H + 4)}" fill="none" stroke="var(--amber-soft)" stroke-width="2.4"/>`);
+      }
+      pieces.push(`<path class="iso-hit" d="${isoDiamondPath(cx, cy)}" data-target="${hitTarget}" role="button" tabindex="0" aria-label="${escapeHtml(ariaLabel)}"/>`);
+      const plotAttr = cell.isPlot ? ` data-plot-id="${state.garden.plots[cell.plotIndex].id}" data-cx="${cx}" data-cy="${cy}"` : ` data-cx="${cx}" data-cy="${cy}"`;
+      return `<g class="iso-cell ${cellClass}${selected ? " is-selected" : ""}"${plotAttr}>${pieces.join("")}</g>`;
+    }
+
+    function isoPlotGround(cx, cy, locked, wet) {
+      const t = 12;
+      const half = ISO_TILE_W / 2;
+      const quarter = ISO_TILE_H / 2;
+      const leftSide = `M${cx - half} ${cy} L${cx} ${cy + quarter} L${cx} ${cy + quarter + t} L${cx - half} ${cy + t} Z`;
+      const rightSide = `M${cx + half} ${cy} L${cx} ${cy + quarter} L${cx} ${cy + quarter + t} L${cx + half} ${cy + t} Z`;
+      if (locked) {
+        return `<g class="iso-ground">
+          <path d="${leftSide}" fill="rgba(40, 38, 34, 0.55)"/>
+          <path d="${rightSide}" fill="rgba(30, 28, 25, 0.55)"/>
+          <path class="iso-top" d="${isoDiamondPath(cx, cy)}" fill="rgba(70, 66, 58, 0.4)" stroke="rgba(255, 242, 215, 0.18)" stroke-width="1.4" stroke-dasharray="5 4"/>
+        </g>`;
+      }
+      const topFill = wet ? "var(--soil-wet-1)" : "var(--soil-1)";
+      const sideFillL = wet ? "var(--soil-wet-2)" : "var(--soil-2)";
+      const sideFillR = wet ? "var(--soil-wet-3)" : "var(--soil-3)";
+      const rim = wet ? "var(--soil-wet-border)" : "var(--soil-border)";
+      return `<g class="iso-ground">
+        <path d="${leftSide}" fill="${sideFillL}"/>
+        <path d="${rightSide}" fill="${sideFillR}"/>
+        <path class="iso-top" d="${isoDiamondPath(cx, cy)}" fill="${topFill}" stroke="${rim}" stroke-width="2.4"/>
+        <path d="${isoDiamondPath(cx, cy, ISO_TILE_W - 18, ISO_TILE_H - 9)}" fill="none" stroke="rgba(0, 0, 0, 0.18)" stroke-width="1"/>
+        ${wet ? `<path d="${isoDiamondPath(cx, cy, ISO_TILE_W - 8, ISO_TILE_H - 4)}" fill="rgba(120, 170, 210, 0.14)"/>` : ""}
+      </g>`;
+    }
+
+    function handleIsoCellTap(target) {
+      if (target === "cat") {
+        state.gardenSelectedPlot = "cat";
+        renderField();
+        return;
+      }
+      if (target.startsWith("deco-")) {
+        state.gardenSelectedPlot = target;
+        renderField();
+        return;
+      }
+      const index = state.garden.plots.findIndex((plot) => plot.id === target);
+      if (index < 0) return;
+      const plot = state.garden.plots[index];
+      state.gardenSelectedPlot = plot.id;
+      if (index < unlockedPlotCount() && plot.plant && plantStage(plot.plant) === 3) {
+        harvestPlot(plot);
+        return;
+      }
+      renderField();
     }
 
     function celebrateNewBlooms() {
@@ -3229,6 +3482,7 @@ JSON形式:
     function spawnSparkles(plotId, count, tone) {
       const tile = el.gardenBoard.querySelector(`[data-plot-id="${plotId}"]`);
       if (!tile) return;
+      const isoHost = tile instanceof SVGElement;
       const palettes = {
         treasure: ["#e8c87e", "#f2b7d8", "#9fe0da", "#c9a3f5"],
         rare: ["#c9a3f5", "#bfe3f2", "#fff2d7"],
@@ -3250,7 +3504,14 @@ JSON形式:
         star.style.animationDelay = `${Math.round(Math.random() * 200)}ms`;
         burst.append(star);
       }
-      tile.append(burst);
+      if (isoHost) {
+        burst.classList.add("sparkle-burst-iso");
+        burst.style.left = `${((Number(tile.dataset.cx) / ISO_VIEW_W) * 100).toFixed(2)}%`;
+        burst.style.top = `${((Number(tile.dataset.cy) / ISO_VIEW_H) * 100).toFixed(2)}%`;
+        el.gardenBoard.append(burst);
+      } else {
+        tile.append(burst);
+      }
       setTimeout(() => burst.remove(), 1500);
     }
 
@@ -4908,6 +5169,7 @@ JSON形式:
       const settings = raw && typeof raw === "object" ? raw : {};
       base.theme = oneOf(settings.theme, ["classic", "garden", "diner"], "classic");
       base.user_name = typeof settings.user_name === "string" ? asShortText(settings.user_name) : "里美";
+      base.field_view = oneOf(settings.field_view, ["iso", "flat"], "iso");
       base.provider = settings.provider === "anthropic" ? "anthropic" : "openai";
       base.anthropic = {
         key: String(settings.anthropic && settings.anthropic.key || settings.apiKeyAnthropic || ""),
@@ -4971,6 +5233,7 @@ JSON形式:
       return {
         theme: "classic",
         user_name: "里美",
+        field_view: "iso",
         provider: "openai",
         anthropic: { key: "", model: "" },
         openai: { key: "", model: "" },
