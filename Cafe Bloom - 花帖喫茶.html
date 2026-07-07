@@ -615,6 +615,89 @@
       min-height: 112px;
     }
 
+    .free-cafe {
+      padding: 18px 22px 24px;
+      display: grid;
+      gap: 14px;
+      align-content: start;
+    }
+
+    .question-kicker {
+      margin: 0;
+      font-size: 12px;
+      letter-spacing: 0.14em;
+      color: var(--dim);
+    }
+
+    .question-text {
+      margin: 0;
+      font-size: 19px;
+      line-height: 1.7;
+      font-weight: 700;
+    }
+
+    .question-choices {
+      display: grid;
+      gap: 10px;
+    }
+
+    .question-choice {
+      width: 100%;
+      display: grid;
+      gap: 4px;
+      text-align: left;
+      padding: 14px 16px;
+      min-height: 58px;
+    }
+
+    .question-choice strong {
+      font-size: 16px;
+    }
+
+    .question-choice span {
+      color: var(--dim);
+      font-size: 12px;
+      line-height: 1.4;
+    }
+
+    .question-done {
+      margin: 0;
+      line-height: 1.9;
+      color: var(--dim);
+    }
+
+    .zukan-section {
+      display: grid;
+      gap: 4px;
+    }
+
+    .zukan-label {
+      font-size: 12px;
+      letter-spacing: 0.16em;
+      font-weight: 700;
+      color: #7b5121;
+      opacity: 0.85;
+    }
+
+    .zukan-poem {
+      margin: 0;
+      line-height: 1.9;
+      color: #6a5236;
+      font-size: 15px;
+      font-style: italic;
+    }
+
+    .zukan-locked {
+      margin: 0;
+      padding: 10px 12px;
+      border: 1px dashed rgba(118, 83, 38, 0.38);
+      border-radius: 4px;
+      color: #8a6f4d;
+      background: rgba(255, 246, 219, 0.35);
+      font-size: 13px;
+      line-height: 1.7;
+    }
+
     .book-layout {
       display: grid;
       grid-template-columns: 330px minmax(0, 1fr);
@@ -1461,6 +1544,10 @@
         order: -1;
       }
 
+      body.free-mode .partner-card {
+        order: 0;
+      }
+
       .chat-log {
         max-height: none;
       }
@@ -1602,7 +1689,7 @@
     <header class="topbar">
       <div class="brand">
         <h1>Cafe Bloom — 花帖喫茶 —</h1>
-        <p>好きなだけ喋って、一番の重心から一輪咲かせる / v0.9.0 箱庭の郷</p>
+        <p>好きなだけ喋って、一番の重心から一輪咲かせる / v0.10.0 開店祝い</p>
       </div>
       <nav class="nav" aria-label="画面">
         <button type="button" data-nav="cafe">喫茶店</button>
@@ -1635,7 +1722,9 @@
 
             <div id="chatLog" class="chat-log"></div>
 
-            <div class="composer">
+            <div id="freeCafe" class="free-cafe hidden"></div>
+
+            <div id="composer" class="composer">
               <label for="chatInput">話す</label>
               <textarea id="chatInput" placeholder="今ここで話したいことを、好きなだけ置いていく"></textarea>
               <div class="row">
@@ -1657,6 +1746,7 @@
               <strong>リラ</strong>
               <span>同じ机で話す、少し関西弁の女の子</span>
             </button>
+            <p class="subtle hidden" id="partnerLockNote">🔑 設定でAPIキーを置くと、二人との会話が開く。会話から咲く花は、もっとあなたの花になる。</p>
             <div class="subtle" id="seatStats"></div>
           </aside>
         </div>
@@ -1734,8 +1824,8 @@
               </label>
             </div>
             <div class="settings-section">
-              <h2 id="settings-title" class="section-title">設定</h2>
-              <p class="subtle">APIキーとモデル名はプロバイダごとに保存。下の用途別設定で、誰がどのプロバイダを使うかを選べる。</p>
+              <h2 id="settings-title" class="section-title">AIの鍵（APIキー・任意）</h2>
+              <p class="subtle">キーが無くても、質問カードとSVGの花でちゃんと遊べる。キーを置くと、AIとの会話・画像の花・フル図鑑が開く。キーとモデル名はプロバイダごとに保存。</p>
               <div class="two-col" id="providerChoices">
                 <button type="button" data-provider="anthropic">Anthropic</button>
                 <button type="button" data-provider="openai">OpenAI</button>
@@ -1897,12 +1987,13 @@
   </div>
 
   <script>
-    const APP_VERSION = "v0.9.0";
+    const APP_VERSION = "v0.10.0";
     const LS_SETTINGS = "cb_settings";
     const LS_SESSION = "cb_current_session";
     const LS_HANACHO = "cb_hanacho";
     const LS_MEMOS = "cb_memos";
     const LS_GARDEN = "cb_garden";
+    const LS_DAILY = "cb_daily_question";
     const OLD_SETTINGS = "settings";
     const OLD_HANACHO = "hanacho";
     const IDB_NAME = "cafe_bloom_storage";
@@ -1913,6 +2004,7 @@
     const GARDEN_BASE_PLOTS = 6;
     const GARDEN_MAX_LEVEL = GARDEN_PLOTS_TOTAL - GARDEN_BASE_PLOTS + 1;
     const GARDEN_STAGE_MS = [10 * 60000, 60 * 60000, 220 * 60000];
+    const GARDEN_EARLY_STAGE_MS = [20000, 45000, 90000];
     const GARDEN_STAGE_NAMES = ["種", "芽", "つぼみ", "満開"];
     const GARDEN_WET_MS = 3 * 3600000;
     const GARDEN_WATER_MAX = 5;
@@ -2257,8 +2349,13 @@ JSON形式:
   "flower": {
     "name": "花名（漢字またはかな、造語可）",
     "reading": "よみがな",
-    "hanakotoba": "花ことば（短く）",
-    "zukanbun": "図鑑文。2〜4文。ヴィンテージ植物図鑑の文体",
+    "hanakotoba": "花ことば（短く。会話の中身から取る）",
+    "zukan": {
+      "tokucho": "特徴。2〜3文。花の見た目と性質。ヴィンテージ植物図鑑の文体",
+      "seisokuchi": "生息地。どんな場面・気持ちの時に現れやすい花か。1〜2文",
+      "sodatekata": "育て方のヒント。世界観に沿った架空のお世話アドバイス。1〜2文",
+      "hitokoto": "ひとこと詩。「今日この部屋で咲いた花。」のような短い一文の添え書き"
+    },
     "image_prompt": "English prompt for this specific flower only: color, petal shape, glow, mood, texture",
     "svg_params": {
       "petal_count": 5,
@@ -2280,12 +2377,330 @@ JSON形式:
 
     const SAFETY_MESSAGE = "今は花にするより、現実の助けにつながることを優先していい。信頼できる人、身近な相談先、緊急の窓口に連絡して。ここでは責めずに、言葉をそのまま置いておく。";
 
+    const OPENING_GIFT_SEED = {
+      id: "opening-gift",
+      name: "ヒラキゾメ",
+      svg_params: {
+        petal_count: 7,
+        petal_shape: "frilled",
+        petal_color_outer: "#e8a3bd",
+        petal_color_inner: "#f7dca0",
+        glow_color: "#ffd9a0",
+        glow_strength: 0.55,
+        center_type: "heart",
+        center_color: "#a05a78",
+        dew_count: 2,
+        stem_curve: 0.1,
+        leaf_count: 2,
+        layer_count: 2
+      }
+    };
+    const OPENING_GIFT_MESSAGE = "カフェ・ブルーム開店のお祝いに、早咲きの種「ヒラキゾメ」がひと粒届いた🌸 花畑にまいて、水をやってみて。";
+
+    const QUESTION_NAME_SUFFIXES = ["ソウ", "バナ", "ノハナ", "クサ"];
+
+    const QUESTION_CARDS = [
+      {
+        id: "tea",
+        title: "今日のお茶",
+        question: "今日のあなたに出すなら、どのお茶？",
+        choices: [
+          {
+            label: "あたたかい紅茶",
+            sub: "湯気ごと、ほっとひと息",
+            palettes: [
+              ["#c96a5a", "#f2c879", "#f7d58a", "#7a3f35"],
+              ["#b85a44", "#e8a96a", "#f0b87a", "#6e3a2a"],
+              ["#d98a5f", "#f5d9a0", "#ffd9a0", "#8a4a2f"]
+            ],
+            shapes: ["round", "teardrop"],
+            centers: ["orb", "heart"],
+            petals: [5, 8],
+            layers: [1, 2],
+            glow: [0.3, 0.55],
+            dew: [0, 2],
+            stem: [-0.2, 0.2],
+            prefixes: ["アカネ", "ヌクモリ", "コハク", "ユウチャ"],
+            hanakotoba: ["あたたまってから、ゆっくり", "湯気の向こうの安心", "自分をねぎらう一杯"],
+            features: [
+              "淹れたての紅茶に似た香りをまとい、花びらはほんのりあたたかい。",
+              "琥珀色の光を花の芯にためて、夕方にいちばん深く色づく。",
+              "カップから立つ湯気を浴びると、花びらがゆるくほどけるという。"
+            ],
+            image_words: "warm amber and soft rose flower, tea-steam softness, golden inner glow"
+          },
+          {
+            label: "すっきり緑茶",
+            sub: "澄んだ気持ちで",
+            palettes: [
+              ["#e9e6d8", "#f7f5ea", "#d9e8c9", "#7f9868"],
+              ["#b8cc9e", "#eef2dd", "#d3e6b8", "#5f7d4a"],
+              ["#cfe0c0", "#f5f2e2", "#e0ecd0", "#6a8a58"]
+            ],
+            shapes: ["pointed", "teardrop"],
+            centers: ["orb", "star"],
+            petals: [5, 9],
+            layers: [1, 1],
+            glow: [0.15, 0.35],
+            dew: [1, 4],
+            stem: [-0.15, 0.15],
+            prefixes: ["シラツユ", "ワカバ", "スズカゼ", "サヤカ"],
+            hanakotoba: ["澄んだ気持ちで", "静かなひと息", "さっぱりと、もう一度"],
+            features: [
+              "白い花びらが、朝の光の中でうっすら緑がかって見える。",
+              "若葉の匂いに近い、すっと通る香りを持っている。",
+              "澄んだ露を、葉の先にひと粒ずつ大事に乗せる癖がある。"
+            ],
+            image_words: "white and pale green flower, fresh clean petals, morning dew, quiet light"
+          },
+          {
+            label: "甘いココア",
+            sub: "今日は甘やかす日",
+            palettes: [
+              ["#e8a3bd", "#f7d9e4", "#f5c3d8", "#a05a78"],
+              ["#f0b8c8", "#fbe8ee", "#f7cfd9", "#b06a85"],
+              ["#dd8fae", "#f5cfe0", "#efb8d0", "#94506e"]
+            ],
+            shapes: ["frilled", "round"],
+            centers: ["heart", "orb"],
+            petals: [6, 9],
+            layers: [2, 3],
+            glow: [0.3, 0.5],
+            dew: [0, 1],
+            stem: [-0.25, 0.25],
+            prefixes: ["フワリ", "アマネ", "モモカ", "ユメミ"],
+            hanakotoba: ["甘やかすのも大事", "ふわふわのままでいい", "小さなご褒美"],
+            features: [
+              "幾重にも重なる花びらが、泡立てたミルクのようにやわらかい。",
+              "近づくと、ほんのり甘い香りが指先まで届く。",
+              "ふれると花びらがふわりと沈んで、ゆっくり戻ってくる。"
+            ],
+            image_words: "fluffy pink flower with many soft layered petals, creamy sweet mood, cocoa warmth"
+          }
+        ]
+      },
+      {
+        id: "window",
+        title: "窓の外",
+        question: "カフェの窓から見えるとしたら、どの景色がいい？",
+        choices: [
+          {
+            label: "雨あがりの庭",
+            sub: "しずくの光る緑",
+            palettes: [
+              ["#9bc0d8", "#e8f2f5", "#c9e3ea", "#5f8a9b"],
+              ["#a3c9b8", "#eef5ec", "#cfe8da", "#5f8a72"],
+              ["#b0cfd8", "#f2f7f5", "#d8eae8", "#6a8f92"]
+            ],
+            shapes: ["round", "teardrop"],
+            centers: ["orb"],
+            petals: [5, 8],
+            layers: [1, 2],
+            glow: [0.2, 0.4],
+            dew: [4, 8],
+            stem: [-0.3, 0.3],
+            prefixes: ["シズク", "アマオト", "ニジノネ", "ミズハ"],
+            hanakotoba: ["雨のあとの光", "洗われた朝に", "しずくの記憶"],
+            features: [
+              "花びらに小さな雫を並べて、光をためこむ癖がある。",
+              "雨のやんだ直後の庭の匂いをまとって咲く。",
+              "水たまりに映る空の色を、少しだけ分けてもらった花。"
+            ],
+            image_words: "rain-washed flower covered with sparkling dew drops, fresh green garden after rain"
+          },
+          {
+            label: "夕焼けの空",
+            sub: "帰り道の色",
+            palettes: [
+              ["#e8875f", "#f7d08a", "#ffca8a", "#a34f2f"],
+              ["#d96f4f", "#f5b878", "#f7c890", "#8f3f28"],
+              ["#e89a6a", "#fbe0a8", "#ffd9a0", "#a85f38"]
+            ],
+            shapes: ["pointed", "round"],
+            centers: ["orb", "spiral"],
+            petals: [6, 10],
+            layers: [1, 2],
+            glow: [0.4, 0.65],
+            dew: [0, 2],
+            stem: [-0.2, 0.2],
+            prefixes: ["ユウバエ", "アカネグモ", "ヒグレ", "ソラアカリ"],
+            hanakotoba: ["今日をきれいに終える", "燃えのこりのやさしさ", "帰り道の色"],
+            features: [
+              "外側から芯へ、夕焼けと同じ順番で色が移ろっていく。",
+              "日の暮れる時刻になると、花びらの縁がいちだんと明るむ。",
+              "窓辺に置くと、部屋の壁に小さな茜色を落とす。"
+            ],
+            image_words: "sunset gradient flower, orange to gold petals, warm evening sky glow"
+          },
+          {
+            label: "星の出はじめた宵",
+            sub: "夜のはじまり",
+            palettes: [
+              ["#5f6fb8", "#c9d3f5", "#8fa8f0", "#2f3a6e"],
+              ["#6a5a9b", "#cfc3ea", "#b8a3f0", "#38305f"],
+              ["#4f5f8f", "#b8cce8", "#7a9be0", "#28304f"]
+            ],
+            shapes: ["pointed", "teardrop"],
+            centers: ["star"],
+            petals: [5, 9],
+            layers: [1, 2],
+            glow: [0.6, 0.95],
+            dew: [0, 3],
+            stem: [-0.3, 0.3],
+            prefixes: ["ヨイボシ", "ホシアカリ", "ヨザキ", "ツキシタ"],
+            hanakotoba: ["夜にひらく静けさ", "星を待つ時間", "一日の終わりの深呼吸"],
+            features: [
+              "日が沈んでから、青い光をともしてゆっくりひらく。",
+              "花の芯に、星に似た小さな光を宿している。",
+              "静かな場所ほど、光がよく育つと言われている。"
+            ],
+            image_words: "night-blooming blue flower with starlight glow, twilight sky, first stars"
+          }
+        ]
+      },
+      {
+        id: "weight",
+        title: "今日の重さ",
+        question: "今日の気分、荷物にたとえると？",
+        choices: [
+          {
+            label: "手ぶらで軽い",
+            sub: "スキップしそう",
+            palettes: [
+              ["#f2c879", "#fbe8b8", "#ffe3a0", "#a87f3a"],
+              ["#a8cce0", "#eef5fa", "#cfe6f2", "#5f8aa3"],
+              ["#f5d98a", "#fdf2cf", "#ffe8b0", "#b08a45"]
+            ],
+            shapes: ["pointed", "round"],
+            centers: ["star", "orb"],
+            petals: [5, 8],
+            layers: [1, 1],
+            glow: [0.3, 0.5],
+            dew: [0, 2],
+            stem: [-0.05, 0.05],
+            prefixes: ["カロヤカ", "ソラムキ", "ハレバレ", "ミチクサ"],
+            hanakotoba: ["身軽にいこう", "空を向いたまま", "そのまま進んで大丈夫"],
+            features: [
+              "茎がまっすぐ空へ伸びて、花は迷いなく上を向く。",
+              "風が吹くたび、うれしそうに小さく揺れる。",
+              "荷物のない手のひらみたいに、ひらいたまま咲く。"
+            ],
+            image_words: "bright upward-facing flower on a straight stem, light and cheerful, clear sky mood"
+          },
+          {
+            label: "ちょっと鞄が重い",
+            sub: "肩にずしっと",
+            palettes: [
+              ["#b8a3c9", "#eae3f0", "#d3c3e0", "#6e5f8a"],
+              ["#a89bb8", "#e3dde8", "#c9bfd8", "#5f556e"],
+              ["#c0a8c0", "#efe6ef", "#dccadc", "#7a5f7a"]
+            ],
+            shapes: ["teardrop", "round"],
+            centers: ["heart", "orb"],
+            petals: [5, 7],
+            layers: [1, 2],
+            glow: [0.2, 0.4],
+            dew: [1, 3],
+            stem: [0.55, 0.85],
+            prefixes: ["コモレビ", "ヨリソイ", "シノノメ", "ウツムキ"],
+            hanakotoba: ["無理しなくていい", "うつむいたままで、きれい", "重さごと、ここに置いて"],
+            features: [
+              "少しうつむいて咲くけれど、色は誰より深くやさしい。",
+              "うつむいた花の中をのぞくと、思いがけず明るい色をしている。",
+              "重たい日の肩にそっと寄り添うように、低い場所で咲く。"
+            ],
+            image_words: "gently drooping flower with soft muted violet petals, tender and quiet, kind mood"
+          },
+          {
+            label: "荷物下ろしたとこ",
+            sub: "よく頑張った",
+            palettes: [
+              ["#b85a6a", "#f2c879", "#f0b88a", "#7a3a48"],
+              ["#a34f5f", "#e8b06a", "#e8a87a", "#6e3340"],
+              ["#c06a75", "#f5d090", "#f2c090", "#84424f"]
+            ],
+            shapes: ["round", "frilled"],
+            centers: ["orb", "spiral"],
+            petals: [9, 12],
+            layers: [2, 3],
+            glow: [0.3, 0.55],
+            dew: [0, 2],
+            stem: [-0.2, 0.2],
+            prefixes: ["ネギライ", "ヤスラギ", "オロシバ", "ドッシリ"],
+            hanakotoba: ["おつかれさま", "下ろした肩に", "今日はもう休む"],
+            features: [
+              "大ぶりの花びらをゆったり広げ、地に根を張るように咲く。",
+              "荷物を下ろしたあとの深い息に似た、ゆっくりした香りがする。",
+              "どっしりと構えて、多少の風では揺るがない。"
+            ],
+            image_words: "large full-bloomed flower with wide generous petals, deep red and gold, grounded and calm"
+          }
+        ]
+      }
+    ];
+
+    function todayKey(date = new Date()) {
+      const pad = (number) => String(number).padStart(2, "0");
+      return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`;
+    }
+
+    function questionCardForToday() {
+      const now = new Date();
+      const dayNumber = Math.floor(new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime() / 86400000);
+      return QUESTION_CARDS[dayNumber % QUESTION_CARDS.length];
+    }
+
+    function makeQuestionFlower(card, choice) {
+      const pick = (list) => list[Math.floor(Math.random() * list.length)];
+      const inRange = ([min, max]) => min + Math.random() * (max - min);
+      const intInRange = (range) => Math.round(inRange(range));
+      const palette = pick(choice.palettes);
+      const name = pick(choice.prefixes) + pick(QUESTION_NAME_SUFFIXES);
+
+      const firstFeature = pick(choice.features);
+      const restFeatures = choice.features.filter((text) => text !== firstFeature);
+      const tokucho = [
+        firstFeature,
+        pick(restFeatures),
+        `「${card.title}」に「${choice.label}」と答えた日、カウンターの隅で咲いた一輪。`
+      ].join("");
+
+      return {
+        id: makeId(),
+        date: formatDate(),
+        partner: "master",
+        origin: "question",
+        question: card.title,
+        answer: choice.label,
+        name,
+        reading: kataToHira(name),
+        hanakotoba: pick(choice.hanakotoba),
+        zukan: { tokucho, seisokuchi: "", sodatekata: "", hitokoto: "" },
+        image_prompt: `${choice.image_words}, single imaginary flower, soft dreamy light`,
+        svg_params: normalizeSvgParams({
+          petal_count: intInRange(choice.petals),
+          petal_shape: pick(choice.shapes),
+          petal_color_outer: palette[0],
+          petal_color_inner: palette[1],
+          glow_color: palette[2],
+          glow_strength: inRange(choice.glow),
+          center_type: pick(choice.centers),
+          center_color: palette[3],
+          dew_count: intInRange(choice.dew),
+          stem_curve: inRange(choice.stem),
+          leaf_count: intInRange([1, 3]),
+          layer_count: intInRange(choice.layers)
+        })
+      };
+    }
+
     let storageDb = null;
     let lastFieldAutoRender = 0;
 
     const state = {
       settings: loadSettings(),
       session: loadSession(),
+      daily: loadDaily(),
       hanacho: [],
       memos: [],
       garden: defaultGarden(),
@@ -2310,13 +2725,20 @@ JSON形式:
       bindEvents();
       setNotice("花帖を読み込んでいます…", "loading");
       await initializeStoredCollections();
+      const gifted = maybeGiveOpeningGift();
       state.busy = false;
       renderAll();
       showView("cafe");
-      setNotice(state.storageError || "席は空いてる。", state.storageError ? "error" : "");
+      if (state.storageError) {
+        setNotice(state.storageError, "error");
+      } else if (gifted) {
+        setNotice(OPENING_GIFT_MESSAGE, "ok");
+      } else {
+        setNotice("席は空いてる。", "");
+      }
       setInterval(() => {
         if (state.currentView !== "field") return;
-        if (state.garden.fast || Date.now() - lastFieldAutoRender >= 30000) {
+        if (state.garden.fast || hasGrowingEarlyPlant() || Date.now() - lastFieldAutoRender >= 30000) {
           lastFieldAutoRender = Date.now();
           renderField();
         }
@@ -2340,6 +2762,9 @@ JSON形式:
       el.personaButtons = Array.from(document.querySelectorAll("[data-persona]"));
       el.sessionHint = document.getElementById("sessionHint");
       el.chatLog = document.getElementById("chatLog");
+      el.freeCafe = document.getElementById("freeCafe");
+      el.composer = document.getElementById("composer");
+      el.partnerLockNote = document.getElementById("partnerLockNote");
       el.chatInput = document.getElementById("chatInput");
       el.sendButton = document.getElementById("sendButton");
       el.bloomButton = document.getElementById("bloomButton");
@@ -2561,6 +2986,7 @@ JSON形式:
 
     function showView(view) {
       state.currentView = view;
+      if (view === "cafe") renderCafe();
       if (view === "book") renderBook();
       if (view === "field") renderField();
       if (view === "settings") renderSettings();
@@ -2575,6 +3001,29 @@ JSON形式:
     }
 
     function renderCafe() {
+      const free = freeMode();
+      document.body.classList.toggle("free-mode", free);
+      el.composer.classList.toggle("hidden", free);
+      el.freeCafe.classList.toggle("hidden", !free);
+      el.chatLog.classList.toggle("hidden", free);
+      el.partnerLockNote.classList.toggle("hidden", !free);
+
+      if (free) {
+        el.bloomButton.classList.add("hidden");
+        el.retryBloomButton.classList.add("hidden");
+        el.newSeatButton.classList.add("hidden");
+        el.partnerButtons.forEach((button) => {
+          button.classList.remove("active-choice");
+          button.disabled = true;
+        });
+        el.sessionHint.textContent = "今日の質問カードに答えると、一輪咲く。";
+        el.seatStats.textContent = `花帖: ${state.hanacho.length}輪`;
+        renderQuestionCard();
+        return;
+      }
+
+      el.bloomButton.classList.remove("hidden");
+      el.newSeatButton.classList.remove("hidden");
       const hasMessages = state.session.messages.length > 0;
       el.partnerButtons.forEach((button) => {
         const selected = button.dataset.partner === state.session.partner;
@@ -2612,6 +3061,90 @@ JSON形式:
         el.chatLog.append(bubble);
       });
       el.chatLog.scrollTop = el.chatLog.scrollHeight;
+    }
+
+    function freeMode() {
+      return !state.settings.anthropic.key && !state.settings.openai.key;
+    }
+
+    function renderQuestionCard() {
+      const container = el.freeCafe;
+      container.textContent = "";
+
+      const card = questionCardForToday();
+      const kicker = document.createElement("p");
+      kicker.className = "question-kicker";
+      kicker.textContent = `今日の質問カード 「${card.title}」`;
+      container.append(kicker);
+
+      if (state.daily.date === todayKey()) {
+        const done = document.createElement("p");
+        done.className = "question-done";
+        done.textContent = "今日の一輪は、もう花帖にしまってある。明日になると、新しい質問カードが届く。";
+        const row = document.createElement("div");
+        row.className = "row";
+        const bookButton = document.createElement("button");
+        bookButton.type = "button";
+        bookButton.className = "primary";
+        bookButton.textContent = "花帖をひらく";
+        bookButton.addEventListener("click", () => {
+          if (state.daily.flowerId && state.hanacho.some((entry) => entry.id === state.daily.flowerId)) {
+            state.selectedFlowerId = state.daily.flowerId;
+          }
+          showView("book");
+        });
+        row.append(bookButton);
+        container.append(done, row);
+        return;
+      }
+
+      const question = document.createElement("p");
+      question.className = "question-text";
+      question.textContent = card.question;
+      const hint = document.createElement("p");
+      hint.className = "subtle";
+      hint.textContent = "答えると、その答えから今日の一輪が咲く。一日一問。";
+      const choices = document.createElement("div");
+      choices.className = "question-choices";
+      card.choices.forEach((choice) => {
+        const button = document.createElement("button");
+        button.type = "button";
+        button.className = "question-choice";
+        const label = document.createElement("strong");
+        label.textContent = choice.label;
+        const sub = document.createElement("span");
+        sub.textContent = choice.sub;
+        button.append(label, sub);
+        button.addEventListener("click", () => answerQuestionCard(card, choice));
+        choices.append(button);
+      });
+      container.append(question, hint, choices);
+    }
+
+    function answerQuestionCard(card, choice) {
+      if (state.daily.date === todayKey()) return;
+      const created = makeQuestionFlower(card, choice);
+      state.hanacho.push(created);
+      state.selectedFlowerId = created.id;
+      state.daily = { date: todayKey(), flowerId: created.id };
+      saveDaily();
+      saveHanacho();
+      renderAll();
+      showView("book");
+      setNotice(`「${choice.label}」から一輪咲いた。「${created.name}」、花帖にしまった。`, "ok");
+    }
+
+    function maybeGiveOpeningGift() {
+      if (state.garden.openingGiftAt) return false;
+      state.garden.openingGiftAt = Date.now();
+      state.garden.seeds[OPENING_GIFT_SEED.id] = {
+        count: 1,
+        name: OPENING_GIFT_SEED.name,
+        early: true,
+        svg_params: normalizeSvgParams(OPENING_GIFT_SEED.svg_params)
+      };
+      saveGarden();
+      return true;
     }
 
     async function sendMessage() {
@@ -2675,7 +3208,7 @@ JSON形式:
           name: flower.name,
           reading: flower.reading,
           hanakotoba: flower.hanakotoba,
-          zukanbun: flower.zukanbun,
+          zukan: flower.zukan,
           image_prompt: flower.image_prompt,
           svg_params: flower.svg_params
         };
@@ -2765,7 +3298,7 @@ JSON形式:
         const name = document.createElement("strong");
         name.textContent = displayFlowerName(entry);
         const meta = document.createElement("span");
-        meta.textContent = `${entry.date} / ${PARTNER_LABELS[entry.partner] || entry.partner}`;
+        meta.textContent = `${entry.date} / ${entry.origin === "question" ? "質問カード" : (PARTNER_LABELS[entry.partner] || entry.partner)}`;
         text.append(name, meta);
         item.append(mini, text);
         el.bookList.append(item);
@@ -2836,11 +3369,13 @@ JSON形式:
       imageInput.addEventListener("change", () => attachImage(entry, imageInput.files && imageInput.files[0]));
       imageLabel.append(imageInput);
       imageActions.append(imageLabel);
-      const retryImage = document.createElement("button");
-      retryImage.type = "button";
-      retryImage.textContent = "絵を咲かせ直す";
-      retryImage.addEventListener("click", () => regenerateImage(entry));
-      imageActions.append(retryImage);
+      if (!freeMode()) {
+        const retryImage = document.createElement("button");
+        retryImage.type = "button";
+        retryImage.textContent = "絵を咲かせ直す";
+        retryImage.addEventListener("click", () => regenerateImage(entry));
+        imageActions.append(retryImage);
+      }
       if (entry.image_dataurl) {
         const removeImage = document.createElement("button");
         removeImage.type = "button";
@@ -2860,16 +3395,34 @@ JSON形式:
       copy.className = "detail-copy";
       const meta = document.createElement("div");
       meta.className = "detail-meta";
-      meta.append(pill(entry.date), pill(PARTNER_LABELS[entry.partner] || entry.partner), pill(`ID ${entry.id.slice(0, 8)}`));
+      const sourcePill = entry.origin === "question" ? "質問カード" : (PARTNER_LABELS[entry.partner] || entry.partner);
+      meta.append(pill(entry.date), pill(sourcePill), pill(`ID ${entry.id.slice(0, 8)}`));
       const title = document.createElement("h2");
       title.className = "flower-title";
       title.textContent = displayFlowerName(entry);
       const tag = document.createElement("div");
       tag.className = "tagline";
-      tag.textContent = entry.hanakotoba;
-      const zukan = document.createElement("p");
-      zukan.className = "zukan";
-      zukan.textContent = entry.zukanbun;
+      tag.textContent = `花ことば「${entry.hanakotoba}」`;
+      copy.append(meta, title, tag);
+
+      const zukan = entry.zukan || {};
+      const tokuchoText = zukan.tokucho || entry.zukanbun || "";
+      if (tokuchoText) copy.append(zukanSection("特徴", tokuchoText));
+      if (zukan.seisokuchi) copy.append(zukanSection("生息地", zukan.seisokuchi));
+      if (zukan.sodatekata) copy.append(zukanSection("育て方のヒント", zukan.sodatekata));
+      if (zukan.hitokoto) {
+        const poem = document.createElement("p");
+        poem.className = "zukan-poem";
+        poem.textContent = `— ${zukan.hitokoto}`;
+        copy.append(poem);
+      }
+      if (entry.origin === "question" && !zukan.seisokuchi && !zukan.sodatekata && !zukan.hitokoto) {
+        const locked = document.createElement("p");
+        locked.className = "zukan-locked";
+        locked.textContent = "🔒 生息地・育て方のヒント・ひとこと詩 — AIの花係がこの店に来ると、ここまで記される。";
+        copy.append(locked);
+      }
+
       const actions = document.createElement("div");
       actions.className = "row";
       const deleteButton = document.createElement("button");
@@ -2878,7 +3431,7 @@ JSON形式:
       deleteButton.textContent = "この花を削除";
       deleteButton.addEventListener("click", () => deleteFlower(entry.id));
       actions.append(deleteButton);
-      copy.append(meta, title, tag, zukan, actions);
+      copy.append(actions);
 
       grid.append(art, copy);
       card.append(grid);
@@ -2979,6 +3532,7 @@ JSON形式:
       return {
         xp: 0,
         fast: false,
+        openingGiftAt: 0,
         water: { charges: GARDEN_WATER_MAX, lastRefillAt: Date.now() },
         plots: Array.from({ length: GARDEN_PLOTS_TOTAL }, (_, index) => ({ id: `plot-${index}`, plant: null })),
         items: {},
@@ -2999,6 +3553,7 @@ JSON形式:
       if (!raw || typeof raw !== "object") return garden;
       garden.xp = clampInt(raw.xp, 0, 9999999, 0);
       garden.fast = raw.fast === true;
+      garden.openingGiftAt = Number(raw.openingGiftAt) || 0;
       if (raw.water && typeof raw.water === "object") {
         garden.water.charges = clampInt(raw.water.charges, 0, GARDEN_WATER_MAX, GARDEN_WATER_MAX);
         garden.water.lastRefillAt = Number(raw.water.lastRefillAt) || Date.now();
@@ -3024,6 +3579,7 @@ JSON形式:
           garden.seeds[flowerId] = {
             count,
             name: asShortText(seed.name) || "名なしの花",
+            early: seed.early === true,
             svg_params: normalizeSvgParams(seed.svg_params)
           };
         });
@@ -3062,6 +3618,7 @@ JSON形式:
         id: String(raw.id || makeId()),
         flowerId: String(raw.flowerId || ""),
         name: asShortText(raw.name) || "名なしの花",
+        early: raw.early === true,
         svg_params: normalizeSvgParams(raw.svg_params),
         plantedAt: Number(raw.plantedAt) || Date.now(),
         progressMs: Math.max(0, Number(raw.progressMs) || 0),
@@ -3222,12 +3779,21 @@ JSON形式:
       return state.garden.catName || (state.garden.catCoat ? CAT_COATS[state.garden.catCoat].label : "猫");
     }
 
+    function plantStages(plant) {
+      return plant.early ? GARDEN_EARLY_STAGE_MS : gardenTimes().stages;
+    }
+
     function plantStage(plant) {
-      const stages = gardenTimes().stages;
+      const stages = plantStages(plant);
       if (plant.progressMs >= stages[2]) return 3;
       if (plant.progressMs >= stages[1]) return 2;
       if (plant.progressMs >= stages[0]) return 1;
       return 0;
+    }
+
+    function hasGrowingEarlyPlant() {
+      const now = Date.now();
+      return state.garden.plots.some((plot) => plot.plant && plot.plant.early && plantStage(plot.plant) < 3 && now < plot.plant.wetUntil);
     }
 
     function renderGardenHud() {
@@ -3708,7 +4274,7 @@ JSON形式:
       const stage = plantStage(plant);
       const now = Date.now();
       heading.textContent = `「${plant.name}」`;
-      const fullMs = gardenTimes().stages[2];
+      const fullMs = plantStages(plant)[2];
       container.append(paragraph(stage === 3
         ? "満開。マスを押すと収穫できる。"
         : `いまは${GARDEN_STAGE_NAMES[stage]}。満開まで水分あと${formatDurationShort(fullMs - plant.progressMs)}ぶん。`));
@@ -4016,7 +4582,7 @@ JSON形式:
           const item = document.createElement("button");
           item.type = "button";
           item.className = "picker-item";
-          item.innerHTML = `${renderFlowerSvg(seed.svg_params, `${flowerId}seed`, true)}<span><span class="picker-name">${escapeHtml(seed.name)}の種</span><span class="picker-sub">のこり×${seed.count}</span></span>`;
+          item.innerHTML = `${renderFlowerSvg(seed.svg_params, `${flowerId}seed`, true)}<span><span class="picker-name">${escapeHtml(seed.name)}の種</span><span class="picker-sub">のこり×${seed.count}${seed.early ? "・早咲き" : ""}</span></span>`;
           item.addEventListener("click", () => plantFromSeed(plot, flowerId));
           list.append(item);
         });
@@ -4051,8 +4617,8 @@ JSON形式:
       container.append(group);
     }
 
-    function plantInPlot(plot, flowerId, name, svgParams) {
-      plot.plant = normalizeGardenPlant({ flowerId, name, svg_params: svgParams });
+    function plantInPlot(plot, flowerId, name, svgParams, early) {
+      plot.plant = normalizeGardenPlant({ flowerId, name, svg_params: svgParams, early: early === true });
       addGardenXp(5);
       saveGarden();
       renderField();
@@ -4070,8 +4636,10 @@ JSON形式:
       if (plot.plant || !seed || !seed.count) return;
       seed.count -= 1;
       if (!seed.count) delete state.garden.seeds[flowerId];
-      plantInPlot(plot, flowerId, seed.name, seed.svg_params);
-      setNotice(`「${seed.name}」の種をまいた。水をやろう。`, "ok");
+      plantInPlot(plot, flowerId, seed.name, seed.svg_params, seed.early);
+      setNotice(seed.early
+        ? `早咲きの「${seed.name}」の種をまいた。水をやると、みるみる育つ。`
+        : `「${seed.name}」の種をまいた。水をやろう。`, "ok");
     }
 
     function waterPlot(plot) {
@@ -4779,11 +5347,17 @@ JSON形式:
 
     function normalizeFlower(rawFlower) {
       if (!rawFlower || typeof rawFlower !== "object") return null;
+      const zukanRaw = rawFlower.zukan && typeof rawFlower.zukan === "object" ? rawFlower.zukan : {};
       return {
         name: asShortText(rawFlower.name) || "名なしの花",
         reading: asShortText(rawFlower.reading) || "ななしのはな",
         hanakotoba: asShortText(rawFlower.hanakotoba) || "まだ言葉になる前",
-        zukanbun: asLongText(rawFlower.zukanbun) || "喫茶の余白に咲いた花。図鑑には、まだ小さな文字でだけ記されている。",
+        zukan: {
+          tokucho: asLongText(zukanRaw.tokucho) || asLongText(rawFlower.zukanbun) || "喫茶の余白に咲いた花。図鑑には、まだ小さな文字でだけ記されている。",
+          seisokuchi: asLongText(zukanRaw.seisokuchi) || "",
+          sodatekata: asLongText(zukanRaw.sodatekata) || "",
+          hitokoto: asShortText(zukanRaw.hitokoto) || ""
+        },
         image_prompt: asLongText(rawFlower.image_prompt) || "a quiet imaginary flower with soft glowing petals and dew",
         svg_params: normalizeSvgParams(rawFlower.svg_params)
       };
@@ -5129,6 +5703,7 @@ JSON形式:
       localStorage.removeItem(LS_HANACHO);
       localStorage.removeItem(LS_MEMOS);
       localStorage.removeItem(LS_GARDEN);
+      localStorage.removeItem(LS_DAILY);
       localStorage.removeItem(OLD_SETTINGS);
       localStorage.removeItem(OLD_HANACHO);
       await deleteStoredCollections();
@@ -5290,6 +5865,16 @@ JSON形式:
 
     function saveSession() {
       safeSetLocalJson(LS_SESSION, state.session);
+    }
+
+    function loadDaily() {
+      const raw = readLocalJson(LS_DAILY);
+      if (!raw || typeof raw !== "object") return { date: "", flowerId: "" };
+      return { date: String(raw.date || ""), flowerId: String(raw.flowerId || "") };
+    }
+
+    function saveDaily() {
+      safeSetLocalJson(LS_DAILY, state.daily);
     }
 
     async function initializeStoredCollections() {
@@ -5498,10 +6083,21 @@ JSON形式:
           id: String(entry.id || makeId()),
           date: String(entry.date || formatDate()),
           partner: entry.partner === "rira" ? "rira" : "master",
+          origin: entry.origin === "question" ? "question" : undefined,
+          question: entry.question ? asShortText(entry.question) : undefined,
+          answer: entry.answer ? asShortText(entry.answer) : undefined,
           name: asShortText(entry.name) || "名なしの花",
           reading: asShortText(entry.reading) || "ななしのはな",
           hanakotoba: asShortText(entry.hanakotoba) || "まだ言葉になる前",
           zukanbun: asLongText(entry.zukanbun),
+          zukan: entry.zukan && typeof entry.zukan === "object"
+            ? {
+                tokucho: asLongText(entry.zukan.tokucho),
+                seisokuchi: asLongText(entry.zukan.seisokuchi),
+                sodatekata: asLongText(entry.zukan.sodatekata),
+                hitokoto: asShortText(entry.zukan.hitokoto)
+              }
+            : undefined,
           image_prompt: asLongText(entry.image_prompt) || "a quiet imaginary flower with soft glowing petals and dew",
           svg_params: normalizeSvgParams(entry.svg_params),
           image_dataurl: typeof entry.image_dataurl === "string" && entry.image_dataurl.startsWith("data:image/")
@@ -5632,6 +6228,19 @@ JSON形式:
       return span;
     }
 
+    function zukanSection(label, text) {
+      const section = document.createElement("div");
+      section.className = "zukan-section";
+      const heading = document.createElement("span");
+      heading.className = "zukan-label";
+      heading.textContent = label;
+      const body = document.createElement("p");
+      body.className = "zukan";
+      body.textContent = text;
+      section.append(heading, body);
+      return section;
+    }
+
     function setNotice(message, kind = "") {
       el.notice.textContent = message || "";
       el.notice.classList.toggle("is-error", kind === "error");
@@ -5730,6 +6339,10 @@ JSON形式:
 
     function clampInt(value, min, max, fallback) {
       return Math.round(clampNumber(value, min, max, fallback));
+    }
+
+    function kataToHira(text) {
+      return String(text || "").replace(/[ァ-ヶ]/g, (char) => String.fromCharCode(char.charCodeAt(0) - 0x60));
     }
 
     function hashString(text) {
