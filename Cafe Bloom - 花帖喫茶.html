@@ -1947,7 +1947,7 @@
               </div>
               <label for="apiKeyInput">
                 APIキー
-                <input id="apiKeyInput" type="password" autocomplete="off" spellcheck="false">
+                <input id="apiKeyInput" type="password" autocomplete="new-password" spellcheck="false">
               </label>
               <div class="row">
                 <button type="button" id="toggleKeyButton">APIキーを表示する</button>
@@ -3467,6 +3467,7 @@ JSON形式:
       }
       state.session = makeEmptySession(state.session.partner);
       state.bloomFailed = false;
+      state.pendingImage = null;
       saveSession();
       renderCafe();
       setNotice("新しい席についた。", "ok");
@@ -5144,6 +5145,7 @@ JSON形式:
 
     function captureSettingsForm() {
       if (!el.apiKeyInput) return;
+      if (state.currentView !== "settings") return;
       const provider = state.settings.provider;
       state.settings[provider].key = el.apiKeyInput.value.trim();
       state.settings[provider].model = el.modelInput.value.trim();
@@ -5216,8 +5218,6 @@ JSON形式:
     }
 
     function ensureProviderReady(provider, label) {
-      captureSettingsForm();
-      saveSettings();
       if (!state.settings[provider].key) {
         setNotice(`設定で${label}用の${providerName(provider)} APIキーを入れてから使える。`, "error");
         showView("settings");
@@ -5994,6 +5994,8 @@ JSON形式:
       state.garden = defaultGarden();
       state.gardenSelectedPlot = null;
       state.selectedFlowerId = null;
+      state.daily = { date: "", flowerId: "" };
+      state.pendingImage = null;
       renderAll();
       showView("cafe");
       setNotice("全部消した。", "ok");
