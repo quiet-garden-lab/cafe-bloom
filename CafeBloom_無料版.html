@@ -1797,7 +1797,7 @@
     <header class="topbar">
       <div class="brand">
         <h1>Cafe Bloom — 花帖喫茶 —</h1>
-        <p id="brandTagline">好きなだけ喋って、一番の重心から一輪咲かせる / v0.12.0 ふたつの版</p>
+        <p id="brandTagline">好きなだけ喋って、一番の重心から一輪咲かせる / v0.13.0 宵蛍のランタン</p>
       </div>
       <nav class="nav" aria-label="画面">
         <button type="button" data-nav="cafe">喫茶店</button>
@@ -2112,7 +2112,7 @@
   </div>
 
   <script>
-    const APP_VERSION = "v0.12.0";
+    const APP_VERSION = "v0.13.0";
     // EDITION: "full"=製品版 / "free"=無料版（0円配布用）。
     // 無料版ファイルは tools/make-free-edition.ps1 で生成する（この行を差し替えるだけ）。
     // 軸の整理: EDITION=量の制限、APIキーの有無=AI機能のON/OFF。別軸で扱う。
@@ -2162,6 +2162,7 @@
         name: "こみち石",
         flavor: "ふむと少しだけ音がする、平たい石。",
         cost: { petals: 2 },
+        ground: 101,
         svg: `<svg viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
           <ellipse cx="42" cy="52" rx="24" ry="14" fill="#8f8577" stroke="#5f574b" stroke-width="2"/>
           <ellipse cx="80" cy="76" rx="21" ry="12" fill="#9c9284" stroke="#5f574b" stroke-width="2"/>
@@ -2172,6 +2173,7 @@
         name: "白い柵",
         flavor: "ペンキ塗りたてみたいな、小さな木の柵。",
         cost: { petals: 3 },
+        ground: 96,
         svg: `<svg viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
           <g fill="#e8dfc8" stroke="#a89a7c" stroke-width="2">
             <path d="M24 46 L32 38 L40 46 L40 96 L24 96 Z"/>
@@ -2186,6 +2188,7 @@
         name: "庭ランタン",
         flavor: "夜のあいだ、花たちの寝顔を照らす。",
         cost: { petals: 4, mitsu: 1 },
+        ground: 110,
         svg: `<svg viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
           <circle cx="60" cy="42" r="26" fill="#f3ca7a" opacity="0.22"/>
           <rect x="56" y="58" width="8" height="44" rx="3" fill="#5d4526"/>
@@ -2200,6 +2203,7 @@
         name: "木のベンチ",
         flavor: "二人ぶんの幅がある。片方は花のぶん。",
         cost: { petals: 6, mitsu: 1 },
+        ground: 104,
         svg: `<svg viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
           <g fill="#8a6b43" stroke="#5d4526" stroke-width="2">
             <rect x="18" y="38" width="84" height="10" rx="4"/>
@@ -2214,6 +2218,7 @@
         name: "小さな池",
         flavor: "空の色をうつして、日ごと表情が変わる。",
         cost: { petals: 5, mitsu: 2 },
+        ground: 94,
         svg: `<svg viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
           <ellipse cx="60" cy="66" rx="44" ry="28" fill="#57738c" stroke="#3c5063" stroke-width="3"/>
           <ellipse cx="60" cy="63" rx="36" ry="21" fill="#6f95c9" opacity="0.85"/>
@@ -2226,6 +2231,7 @@
         name: "ねこのベッド",
         flavor: "ふかふか。猫はここで丸くなるのが好きらしい。",
         cost: { petals: 5, mitsu: 1 },
+        ground: 99,
         svg: `<svg viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
           <ellipse cx="60" cy="82" rx="38" ry="17" fill="#6e4a30" stroke="#4a2f1c" stroke-width="2.2"/>
           <ellipse cx="60" cy="76" rx="38" ry="16" fill="#8a5e3c" stroke="#4a2f1c" stroke-width="2.2"/>
@@ -2237,6 +2243,7 @@
         name: "ミルクの皿",
         flavor: "置いておくと、猫の足がこちらへ向く。",
         cost: { petals: 2, mitsu: 1 },
+        ground: 92,
         svg: `<svg viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
           <ellipse cx="60" cy="82" rx="27" ry="10" fill="#b0a898" stroke="#7a7264" stroke-width="1.8"/>
           <ellipse cx="60" cy="77" rx="27" ry="10" fill="#eee6da" stroke="#9a9184" stroke-width="2"/>
@@ -2249,6 +2256,7 @@
         flavor: "三つの灯りが、夜の花の色を深くする。",
         theme: "garden",
         cost: { petals: 4, mitsu: 1 },
+        ground: 103,
         svg: `<svg viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
           <circle cx="60" cy="30" r="16" fill="#f3ca7a" opacity="0.18"/>
           <ellipse cx="60" cy="98" rx="17" ry="5" fill="#b7954c" stroke="#7a6132" stroke-width="1.6"/>
@@ -2267,6 +2275,7 @@
         flavor: "鳥の代わりに、あかりが一つ眠っている。",
         theme: "garden",
         cost: { petals: 6, mitsu: 2 },
+        ground: 100,
         svg: `<svg viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
           <circle cx="60" cy="60" r="22" fill="#ffe9b0" opacity="0.16"/>
           <circle cx="60" cy="24" r="4" fill="none" stroke="#d4a94e" stroke-width="2.4"/>
@@ -2283,6 +2292,7 @@
         flavor: "手の届く高さに、小さな星座を吊るしておく。",
         theme: "garden",
         cost: { petals: 7, mitsu: 1, shizuku: 1 },
+        ground: 96,
         svg: `<svg viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
           <rect x="12" y="38" width="5" height="58" rx="2" fill="#8a6b43" stroke="#5d4526" stroke-width="1.4"/>
           <rect x="103" y="38" width="5" height="58" rx="2" fill="#8a6b43" stroke="#5d4526" stroke-width="1.4"/>
@@ -2304,6 +2314,7 @@
         flavor: "ここから先、畑のメインストリート。",
         theme: "diner",
         cost: { petals: 3 },
+        ground: 103,
         svg: `<svg viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
           <rect x="56" y="50" width="8" height="46" rx="3" fill="#8f8577" stroke="#5f574b" stroke-width="1.6"/>
           <ellipse cx="60" cy="98" rx="18" ry="5" fill="#5f574b"/>
@@ -2317,6 +2328,7 @@
         flavor: "もう走らないタイヤは、花の指定席になった。",
         theme: "diner",
         cost: { petals: 4, mitsu: 1 },
+        ground: 98,
         svg: `<svg viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
           <ellipse cx="60" cy="80" rx="41" ry="18" fill="#1f1b19"/>
           <ellipse cx="60" cy="75" rx="41" ry="18" fill="#3d3a3e" stroke="#1a1512" stroke-width="2.2"/>
@@ -2340,6 +2352,7 @@
         flavor: "満タンにするのは、ガソリンじゃなくて元気。",
         theme: "diner",
         cost: { petals: 6, mitsu: 2 },
+        ground: 98,
         svg: `<svg viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
           <rect x="38" y="90" width="44" height="8" rx="3" fill="#5f574b"/>
           <rect x="42" y="34" width="36" height="58" rx="9" fill="#c9463d" stroke="#3a1f1c" stroke-width="2.4"/>
@@ -2357,6 +2370,7 @@
         flavor: "磨きたてのボディに、夕陽と花が映りこむ。",
         theme: "diner",
         cost: { petals: 10, mitsu: 2, shizuku: 1 },
+        ground: 98,
         svg: `<svg viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
           <ellipse cx="60" cy="92" rx="50" ry="6" fill="#00000033"/>
           <path d="M14 62 L30 60 L40 47 C43 43 49 41 57 41 L70 41 C78 41 83 44 87 49 L95 60 L106 62 C112 63 115 68 114 74 L112 82 L8 82 L6 74 C5 68 8 63 14 62Z" fill="#c9463d" stroke="#3a1f1c" stroke-width="2.4"/>
@@ -2377,6 +2391,7 @@
         name: "花のアーチ",
         flavor: "くぐると、いい話が一つ増えるらしい。",
         cost: { petals: 8, mitsu: 2, shizuku: 1 },
+        ground: 104,
         svg: `<svg viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
           <path d="M26 104 L26 52 Q26 18 60 18 Q94 18 94 52 L94 104" fill="none" stroke="#8a6b43" stroke-width="9" stroke-linecap="round"/>
           <path d="M26 104 L26 52 Q26 18 60 18 Q94 18 94 52 L94 104" fill="none" stroke="#6f8753" stroke-width="4" stroke-linecap="round" stroke-dasharray="9 13"/>
@@ -2396,6 +2411,7 @@
         name: "にじの泉",
         flavor: "水面の上に、小さな虹がずっとかかっている。",
         cost: { petals: 6, mitsu: 2, shizuku: 1, niji: 1 },
+        ground: 106,
         svg: `<svg viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
           <ellipse cx="60" cy="92" rx="42" ry="14" fill="#8f8577" stroke="#5f574b" stroke-width="2.2"/>
           <ellipse cx="60" cy="88" rx="36" ry="11" fill="#7fb4c9" stroke="#5f574b" stroke-width="1.6"/>
@@ -2411,6 +2427,86 @@
             <text x="94" y="56" font-size="8">✦</text>
             <text x="60" y="44" font-size="9">✦</text>
           </g>
+        </svg>`
+      },
+      yoibotaru: {
+        name: "宵蛍のランタン",
+        flavor: "灯りをともした夜から、蛍たちが住みついた。",
+        theme: "garden",
+        cost: { petals: 8, mitsu: 2, shizuku: 2 },
+        ground: 116,
+        svg: `<svg viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+          <defs>
+            <radialGradient id="cbYoiGlow">
+              <stop offset="0%" stop-color="#ffe9b0" stop-opacity="0.5"/>
+              <stop offset="45%" stop-color="#f3ca7a" stop-opacity="0.24"/>
+              <stop offset="100%" stop-color="#f3ca7a" stop-opacity="0"/>
+            </radialGradient>
+          </defs>
+          <circle cx="76" cy="50" r="36" fill="url(#cbYoiGlow)">
+            <animate attributeName="opacity" values="0.7;1;0.8;0.95;0.7" dur="3.4s" repeatCount="indefinite"/>
+          </circle>
+          <path d="M100 20 l1.6 3.4 3.4 1.6 -3.4 1.6 -1.6 3.4 -1.6 -3.4 -3.4 -1.6 3.4 -1.6Z" fill="#fff2d7" opacity="0.6">
+            <animate attributeName="opacity" values="0.15;0.7;0.2;0.6;0.15" dur="3.6s" repeatCount="indefinite"/>
+          </path>
+          <path d="M28 34 l1.3 2.7 2.7 1.3 -2.7 1.3 -1.3 2.7 -1.3 -2.7 -2.7 -1.3 2.7 -1.3Z" fill="#fff2d7" opacity="0.5">
+            <animate attributeName="opacity" values="0.5;0.15;0.55;0.2;0.5" dur="4.4s" repeatCount="indefinite"/>
+          </path>
+          <path d="M44 113 L44 44 Q44 28 60 28 L76 28" fill="none" stroke="#453a55" stroke-width="5" stroke-linecap="round"/>
+          <path d="M44 113 L44 44 Q44 28 60 28 L76 28" fill="none" stroke="#6b5c80" stroke-width="1.5" stroke-linecap="round"/>
+          <ellipse cx="44" cy="113" rx="9" ry="3" fill="#453a55"/>
+          <path d="M76 28 L76 34" stroke="#b7954c" stroke-width="2"/>
+          <rect x="68" y="33" width="16" height="6" rx="2" fill="#453a55" stroke="#b7954c" stroke-width="1"/>
+          <path d="M66 39 L86 39 L82 68 L70 68 Z" fill="#453a55" stroke="#2e2738" stroke-width="1.6"/>
+          <rect x="70" y="42" width="12" height="22" rx="2" fill="#ffe9b0" stroke="#b7954c" stroke-width="1.2"/>
+          <rect x="68" y="66" width="16" height="5" rx="2" fill="#453a55" stroke="#b7954c" stroke-width="1"/>
+          <path d="M76 60 C79.5 54.5 77.5 51 76 48.5 C74.5 51 72.5 54.5 76 60Z" fill="#f3ca7a">
+            <animate attributeName="opacity" values="1;0.78;1;0.88;1" dur="1.7s" repeatCount="indefinite"/>
+          </path>
+          <circle cx="76" cy="56" r="2.2" fill="#fff2d7">
+            <animate attributeName="r" values="2.2;2.8;2.3;2.7;2.2" dur="2.1s" repeatCount="indefinite"/>
+          </circle>
+          <g stroke="#5c7057" stroke-width="2" stroke-linecap="round" fill="none">
+            <path d="M34 112 C33 107 34 103 36 100"/>
+            <path d="M39 113 C39 108 40 105 42 102"/>
+            <path d="M52 113 C53 108 52 104 50 101"/>
+            <path d="M57 111 C58 107 57 104 55 101"/>
+          </g>
+          <path d="M35 104 C35 99 34 96 33 93 M53 104 C53 100 54 97 55 94" fill="none" stroke="#5c7057" stroke-width="1.6" stroke-linecap="round"/>
+          <circle cx="33" cy="91" r="3.2" fill="#b493d6" stroke="#8b6f9c" stroke-width="0.8"/>
+          <circle cx="33" cy="91" r="1.2" fill="#e8c87e"/>
+          <circle cx="55" cy="92" r="3" fill="#e8e2f2" stroke="#9b7ab8" stroke-width="0.8"/>
+          <circle cx="55" cy="92" r="1.1" fill="#e8c87e"/>
+          <circle cx="46" cy="108" r="2.6" fill="#9b7ab8" stroke="#6f5687" stroke-width="0.8"/>
+          <circle cx="46" cy="108" r="1" fill="#e8c87e"/>
+          <circle r="1.7" fill="#ffe9b0">
+            <animateMotion dur="11s" repeatCount="indefinite" path="M30 74 C42 60 58 64 54 78 C50 90 32 88 30 74Z"/>
+            <animate attributeName="opacity" values="0.1;0.9;0.85;0.2;0.8;0.1" dur="5.2s" repeatCount="indefinite"/>
+          </circle>
+          <circle r="1.5" fill="#f3ca7a">
+            <animateMotion dur="9s" begin="-3s" repeatCount="indefinite" path="M94 64 C102 55 108 64 102 72 C96 80 88 72 94 64Z"/>
+            <animate attributeName="opacity" values="0.8;0.15;0.85;0.25;0.9;0.8" dur="4.3s" repeatCount="indefinite"/>
+          </circle>
+          <circle r="1.6" fill="#ffe9b0">
+            <animateMotion dur="13s" begin="-6s" repeatCount="indefinite" path="M52 96 C62 88 74 92 70 102 C66 110 54 106 52 96Z"/>
+            <animate attributeName="opacity" values="0.2;0.85;0.3;0.9;0.15;0.2" dur="6.1s" repeatCount="indefinite"/>
+          </circle>
+          <circle r="1.4" fill="#fff2d7">
+            <animateMotion dur="8s" begin="-2s" repeatCount="indefinite" path="M62 38 C56 32 62 24 68 30 C72 34 68 42 62 38Z"/>
+            <animate attributeName="opacity" values="0.9;0.3;0.85;0.2;0.9;0.9" dur="3.8s" repeatCount="indefinite"/>
+          </circle>
+          <circle cx="70" cy="72" r="1.2" fill="#f3ca7a" opacity="0">
+            <animateTransform attributeName="transform" type="translate" values="0 0; 1.5 -9; -1 -18; 0.5 -26" dur="5.4s" repeatCount="indefinite"/>
+            <animate attributeName="opacity" values="0;0.7;0.5;0" dur="5.4s" repeatCount="indefinite"/>
+          </circle>
+          <circle cx="83" cy="66" r="1.1" fill="#ffe9b0" opacity="0">
+            <animateTransform attributeName="transform" type="translate" values="0 0; -1.5 -8; 1 -16; -0.5 -24" dur="6.6s" begin="-2.2s" repeatCount="indefinite"/>
+            <animate attributeName="opacity" values="0;0.65;0.45;0" dur="6.6s" begin="-2.2s" repeatCount="indefinite"/>
+          </circle>
+          <circle cx="76" cy="78" r="1" fill="#fff2d7" opacity="0">
+            <animateTransform attributeName="transform" type="translate" values="0 0; 1 -10; -1 -20; 0 -30" dur="7.8s" begin="-4s" repeatCount="indefinite"/>
+            <animate attributeName="opacity" values="0;0.6;0.4;0" dur="7.8s" begin="-4s" repeatCount="indefinite"/>
+          </circle>
         </svg>`
       }
     };
@@ -4151,11 +4247,13 @@ JSON形式:
       return `M${cx} ${cy - th / 2} L${cx + tw / 2} ${cy} L${cx} ${cy + th / 2} L${cx - tw / 2} ${cy} Z`;
     }
 
-    function isoEmbedSprite(svgString, cx, baseY, size) {
+    function isoEmbedSprite(svgString, cx, baseY, size, groundY = 120) {
       const isFlower = svgString.includes('viewBox="0 0 240 260"');
       const height = isFlower ? Math.round(size * 1.08) : size;
+      // groundY: 絵の中で地面に接する線のy座標（viewBox 120基準）。絵の下の余白ぶん沈めて接地させる
+      const sink = Math.round(height * (120 - groundY) / 120);
       const shadow = `<ellipse class="iso-art" cx="${cx}" cy="${baseY - 3}" rx="${Math.round(size * 0.3)}" ry="${Math.round(size * 0.09)}" fill="rgba(0, 0, 0, 0.3)"/>`;
-      const sprite = svgString.replace("<svg ", `<svg class="iso-art" x="${cx - size / 2}" y="${baseY - height}" width="${size}" height="${height}" `);
+      const sprite = svgString.replace("<svg ", `<svg class="iso-art" x="${cx - size / 2}" y="${baseY - height + sink}" width="${size}" height="${height}" `);
       return shadow + sprite;
     }
 
@@ -4243,7 +4341,7 @@ JSON形式:
         const baseY = cy + Math.round(ISO_TILE_H * 0.16);
         if (key && GARDEN_DECOS[key]) {
           ariaLabel = `飾り「${GARDEN_DECOS[key].name}」`;
-          pieces.push(isoEmbedSprite(GARDEN_DECOS[key].svg, cx, baseY, 66));
+          pieces.push(isoEmbedSprite(GARDEN_DECOS[key].svg, cx, baseY, 66, GARDEN_DECOS[key].ground || 120));
         } else {
           ariaLabel = "飾りを置ける草地";
         }
