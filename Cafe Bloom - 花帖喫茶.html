@@ -1097,6 +1097,19 @@
       box-shadow: inset 0 0 60px rgba(10, 6, 24, 0.5);
     }
 
+    .garden-board.is-iso {
+      position: relative;
+    }
+
+    /* 空気の層(蛍・光の粒)。盤面の描き直しと切り離して、アニメーションを止めない */
+    .iso-ambient-layer {
+      position: absolute;
+      inset: 12px;
+      width: calc(100% - 24px);
+      height: calc(100% - 24px);
+      pointer-events: none;
+    }
+
     .tile {
       position: relative;
       aspect-ratio: 1;
@@ -1804,7 +1817,7 @@
     <header class="topbar">
       <div class="brand">
         <h1>Cafe Bloom — 花帖喫茶 —</h1>
-        <p id="brandTagline">好きなだけ喋って、一番の重心から一輪咲かせる / v0.15.0 宵の庭園の夜</p>
+        <p id="brandTagline">好きなだけ喋って、一番の重心から一輪咲かせる / v0.15.1 夜もりもり</p>
       </div>
       <nav class="nav" aria-label="画面">
         <button type="button" data-nav="cafe">喫茶店</button>
@@ -2119,7 +2132,7 @@
   </div>
 
   <script>
-    const APP_VERSION = "v0.15.0";
+    const APP_VERSION = "v0.15.1";
     // EDITION: "full"=製品版 / "free"=無料版（0円配布用）。
     // 無料版ファイルは tools/make-free-edition.ps1 で生成する（この行を差し替えるだけ）。
     // 軸の整理: EDITION=量の制限、APIキーの有無=AI機能のON/OFF。別軸で扱う。
@@ -4259,7 +4272,22 @@ JSON形式:
       } else {
         renderFlatBoard();
       }
+      syncIsoAmbientLayer(iso);
       celebrateNewBlooms();
+    }
+
+    // 蛍・光の粒の層。既にある時は作り直さない(アニメーションを途切れさせないため)
+    function syncIsoAmbientLayer(iso) {
+      const theme = state.settings.theme || "classic";
+      const layer = el.gardenBoard.querySelector(".iso-ambient-layer");
+      const content = iso ? isoThemeAmbient() : "";
+      if (!content) {
+        if (layer) layer.remove();
+        return;
+      }
+      if (layer && layer.getAttribute("data-theme") === theme) return;
+      if (layer) layer.remove();
+      el.gardenBoard.insertAdjacentHTML("beforeend", `<svg class="iso-ambient-layer" viewBox="0 0 ${ISO_VIEW_W} ${ISO_VIEW_H}" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" data-theme="${theme}">${content}</svg>`);
     }
 
     function renderFlatBoard() {
@@ -4365,6 +4393,33 @@ JSON形式:
           <path d="M500 96 l1.3 2.7 2.7 1.3 -2.7 1.3 -1.3 2.7 -1.3 -2.7 -2.7 -1.3 2.7 -1.3Z" opacity="0.5">
             <animate attributeName="opacity" values="0.5;0.15;0.55;0.2;0.5" dur="5.6s" repeatCount="indefinite"/>
           </path>
+          <circle cx="130" cy="60" r="0.8" opacity="0.4"/>
+          <circle cx="190" cy="96" r="0.9" opacity="0.45"/>
+          <circle cx="252" cy="20" r="1" opacity="0.55"/>
+          <circle cx="322" cy="58" r="0.8" opacity="0.4"/>
+          <circle cx="402" cy="92" r="0.9" opacity="0.45"/>
+          <circle cx="452" cy="70" r="1.1" opacity="0.5"/>
+          <circle cx="524" cy="46" r="0.8" opacity="0.4"/>
+          <circle cx="598" cy="122" r="0.9" opacity="0.45"/>
+          <circle cx="666" cy="30" r="1" opacity="0.5"/>
+          <circle cx="702" cy="88" r="0.8" opacity="0.4"/>
+          <circle cx="62" cy="112" r="1" opacity="0.5"/>
+          <circle cx="24" cy="70" r="0.9" opacity="0.45"/>
+          <circle cx="188" cy="44" r="1" opacity="0.5">
+            <animate attributeName="opacity" values="0.6;0.2;0.65;0.25;0.6" dur="4.1s" repeatCount="indefinite"/>
+          </circle>
+          <circle cx="470" cy="108" r="0.9" opacity="0.45">
+            <animate attributeName="opacity" values="0.2;0.6;0.25;0.55;0.2" dur="5.4s" repeatCount="indefinite"/>
+          </circle>
+          <path d="M320 104 l1.3 2.7 2.7 1.3 -2.7 1.3 -1.3 2.7 -1.3 -2.7 -2.7 -1.3 2.7 -1.3Z" opacity="0.45">
+            <animate attributeName="opacity" values="0.15;0.55;0.2;0.5;0.15" dur="6.2s" repeatCount="indefinite"/>
+          </path>
+        </g>
+        <g opacity="0">
+          <path d="M0 0 L26 10" stroke="#fff2d7" stroke-width="1.5" stroke-linecap="round"/>
+          <circle cx="26" cy="10" r="1.6" fill="#fff2d7"/>
+          <animateTransform attributeName="transform" type="translate" values="150 26; 268 72; 268 72" keyTimes="0; 0.07; 1" dur="26s" repeatCount="indefinite"/>
+          <animate attributeName="opacity" values="0; 0.8; 0; 0" keyTimes="0; 0.035; 0.075; 1" dur="26s" repeatCount="indefinite"/>
         </g>
         <circle cx="636" cy="76" r="58" fill="url(#cbNgMoonGlow)">
           <animate attributeName="opacity" values="0.85;1;0.9;1;0.85" dur="6s" repeatCount="indefinite"/>
@@ -4463,9 +4518,79 @@ JSON形式:
             <circle cx="726" cy="260" r="1.2"/>
           </g>
         </g>
+        <g>
+          <ellipse cx="300" cy="486" rx="34" ry="16" fill="#27332b"/>
+          <ellipse cx="336" cy="490" rx="28" ry="13" fill="#2f3d33"/>
+          <circle cx="290" cy="476" r="5.5" fill="#b493d6"/>
+          <circle cx="312" cy="472" r="6" fill="#c98ba5"/>
+          <circle cx="334" cy="480" r="5" fill="#e0c1e8"/>
+          <g fill="#edd191">
+            <circle cx="290" cy="476" r="1.4"/>
+            <circle cx="312" cy="472" r="1.5"/>
+            <circle cx="334" cy="480" r="1.3"/>
+          </g>
+        </g>
+        <g>
+          <ellipse cx="452" cy="488" rx="34" ry="15" fill="#2a3730"/>
+          <ellipse cx="416" cy="490" rx="26" ry="12" fill="#27332b"/>
+          <circle cx="444" cy="476" r="5.5" fill="#a482c9"/>
+          <circle cx="466" cy="480" r="6" fill="#c98ba5"/>
+          <circle cx="422" cy="482" r="5" fill="#9b7ab8"/>
+          <g fill="#edd191">
+            <circle cx="444" cy="476" r="1.4"/>
+            <circle cx="466" cy="480" r="1.5"/>
+            <circle cx="422" cy="482" r="1.3"/>
+          </g>
+        </g>
+        <g>
+          <ellipse cx="20" cy="364" rx="26" ry="15" fill="#2a3730"/>
+          <circle cx="12" cy="354" r="5" fill="#c98ba5"/>
+          <circle cx="28" cy="360" r="5.5" fill="#b493d6"/>
+          <circle cx="18" cy="372" r="4.5" fill="#e0c1e8"/>
+          <g fill="#edd191">
+            <circle cx="12" cy="354" r="1.3"/>
+            <circle cx="28" cy="360" r="1.4"/>
+            <circle cx="18" cy="372" r="1.2"/>
+          </g>
+        </g>
+        <g>
+          <ellipse cx="724" cy="356" rx="26" ry="15" fill="#27332b"/>
+          <circle cx="732" cy="346" r="5" fill="#a482c9"/>
+          <circle cx="716" cy="352" r="5.5" fill="#c98ba5"/>
+          <circle cx="726" cy="364" r="4.5" fill="#9b7ab8"/>
+          <g fill="#edd191">
+            <circle cx="732" cy="346" r="1.3"/>
+            <circle cx="716" cy="352" r="1.4"/>
+            <circle cx="726" cy="364" r="1.2"/>
+          </g>
+        </g>
+        <g>
+          <ellipse cx="14" cy="180" rx="18" ry="10" fill="#2a3730"/>
+          <circle cx="8" cy="172" r="4" fill="#b493d6"/>
+          <circle cx="22" cy="178" r="4.5" fill="#e0c1e8"/>
+          <circle cx="8" cy="172" r="1.1" fill="#edd191"/>
+          <circle cx="22" cy="178" r="1.2" fill="#edd191"/>
+        </g>
+        <g>
+          <ellipse cx="730" cy="170" rx="18" ry="10" fill="#2f3d33"/>
+          <circle cx="736" cy="162" r="4" fill="#c98ba5"/>
+          <circle cx="722" cy="168" r="4.5" fill="#a482c9"/>
+          <circle cx="736" cy="162" r="1.1" fill="#edd191"/>
+          <circle cx="722" cy="168" r="1.2" fill="#edd191"/>
+        </g>
+        <g fill="#b493d6" opacity="0.3">
+          <ellipse cx="188" cy="418" rx="2.6" ry="1.4" transform="rotate(-14 188 418)"/>
+          <ellipse cx="282" cy="432" rx="2.4" ry="1.3" transform="rotate(22 282 432)"/>
+          <ellipse cx="396" cy="444" rx="2.8" ry="1.5" transform="rotate(-8 396 444)"/>
+          <ellipse cx="502" cy="436" rx="2.4" ry="1.3" transform="rotate(16 502 436)"/>
+          <ellipse cx="580" cy="418" rx="2.6" ry="1.4" transform="rotate(-26 580 418)"/>
+          <ellipse cx="120" cy="446" rx="2.4" ry="1.3" transform="rotate(10 120 446)"/>
+        </g>
         <g stroke="#2f3d33" stroke-width="3" fill="none" opacity="0.9">
           <path d="M-4 26 Q60 34 118 14"/>
           <path d="M748 30 Q690 40 630 16"/>
+          <path d="M-4 60 Q40 66 78 48"/>
+          <path d="M748 66 Q706 74 668 54"/>
         </g>
         <g fill="#2a3730">
           <ellipse cx="34" cy="27" rx="7" ry="3.4" transform="rotate(10 34 27)"/>
@@ -4510,6 +4635,18 @@ JSON形式:
           <animateMotion dur="18s" begin="-7s" repeatCount="indefinite" path="M660 380 C700 350 730 390 700 420 C670 445 640 410 660 380Z"/>
           <animate attributeName="opacity" values="0.2;0.85;0.3;0.75;0.2" dur="4.4s" repeatCount="indefinite"/>
         </circle>
+        <circle r="1.6" fill="#f3ca7a">
+          <animateMotion dur="23s" begin="-15s" repeatCount="indefinite" path="M90 430 C150 400 210 430 170 470 C130 505 60 470 90 430Z"/>
+          <animate attributeName="opacity" values="0.2;0.8;0.25;0.85;0.2" dur="5.1s" repeatCount="indefinite"/>
+        </circle>
+        <circle r="1.4" fill="#ffe9b0">
+          <animateMotion dur="20s" begin="-10s" repeatCount="indefinite" path="M540 170 C590 140 640 160 610 200 C580 235 510 210 540 170Z"/>
+          <animate attributeName="opacity" values="0.75;0.2;0.8;0.25;0.75" dur="4.6s" repeatCount="indefinite"/>
+        </circle>
+        <circle r="1.7" fill="#ffe9b0">
+          <animateMotion dur="25s" begin="-18s" repeatCount="indefinite" path="M430 240 C490 210 550 240 500 280 C460 315 380 280 430 240Z"/>
+          <animate attributeName="opacity" values="0.15;0.8;0.25;0.7;0.15" dur="6.4s" repeatCount="indefinite"/>
+        </circle>
         <circle cx="200" cy="470" r="1.2" fill="#f3ca7a" opacity="0">
           <animateTransform attributeName="transform" type="translate" values="0 0; 2 -16; -1 -32; 0 -44" dur="8s" repeatCount="indefinite"/>
           <animate attributeName="opacity" values="0;0.6;0.4;0" dur="8s" repeatCount="indefinite"/>
@@ -4546,7 +4683,15 @@ JSON形式:
       }
       cells.sort((a, b) => (a.col + a.row) - (b.col + b.row) || a.row - b.row);
       cells.forEach((cell) => parts.push(isoCellMarkup(cell, unlocked, now)));
-      el.gardenBoard.innerHTML = `<svg id="isoBoard" viewBox="0 0 ${ISO_VIEW_W} ${ISO_VIEW_H}" xmlns="http://www.w3.org/2000/svg" role="group" aria-label="箱庭の畑">${isoThemeBackdrop()}${parts.join("")}${isoThemeAmbient()}</svg>`;
+      // 蛍の層(.iso-ambient-layer)を巻き込まないよう、#isoBoardだけ差し替える。
+      // innerHTMLで全部作り直すとSVGアニメーションが毎回リセットされて「蛍がフッと消える」
+      const boardMarkup = `<svg id="isoBoard" viewBox="0 0 ${ISO_VIEW_W} ${ISO_VIEW_H}" xmlns="http://www.w3.org/2000/svg" role="group" aria-label="箱庭の畑">${isoThemeBackdrop()}${parts.join("")}</svg>`;
+      const existingBoard = document.getElementById("isoBoard");
+      if (existingBoard && existingBoard.parentElement === el.gardenBoard) {
+        existingBoard.outerHTML = boardMarkup;
+      } else {
+        el.gardenBoard.innerHTML = boardMarkup;
+      }
       el.gardenBoard.querySelectorAll(".iso-hit").forEach((hit) => {
         const target = hit.dataset.target;
         hit.addEventListener("click", () => handleIsoCellTap(target));
