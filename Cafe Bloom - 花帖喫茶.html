@@ -1078,7 +1078,7 @@
 
     .garden-board {
       display: grid;
-      grid-template-columns: repeat(5, 1fr);
+      grid-template-columns: repeat(7, minmax(0, 1fr));
       gap: 8px;
       padding: 12px;
       border-radius: 12px;
@@ -1797,7 +1797,7 @@
     <header class="topbar">
       <div class="brand">
         <h1>Cafe Bloom — 花帖喫茶 —</h1>
-        <p id="brandTagline">好きなだけ喋って、一番の重心から一輪咲かせる / v0.13.0 宵蛍のランタン</p>
+        <p id="brandTagline">好きなだけ喋って、一番の重心から一輪咲かせる / v0.14.0 ひろがる畑</p>
       </div>
       <nav class="nav" aria-label="画面">
         <button type="button" data-nav="cafe">喫茶店</button>
@@ -2112,7 +2112,7 @@
   </div>
 
   <script>
-    const APP_VERSION = "v0.13.0";
+    const APP_VERSION = "v0.14.0";
     // EDITION: "full"=製品版 / "free"=無料版（0円配布用）。
     // 無料版ファイルは tools/make-free-edition.ps1 で生成する（この行を差し替えるだけ）。
     // 軸の整理: EDITION=量の制限、APIキーの有無=AI機能のON/OFF。別軸で扱う。
@@ -2140,6 +2140,31 @@
     const GARDEN_WATER_MAX = 5;
     const GARDEN_WATER_REFILL_MS = 40 * 60000;
     const GARDEN_XP_PER_LEVEL = 80;
+    const GARDEN_GRID_VERSION = 2;
+    const GARDEN_BOARD_SIZE = 7;
+    const GARDEN_PLOT_SIZE = 3;
+    const GARDEN_PLOT_OFFSET = 2;
+    const GARDEN_DECO_CELLS = GARDEN_BOARD_SIZE * GARDEN_BOARD_SIZE - GARDEN_PLOTS_TOTAL;
+    const GARDEN_DECO_CELL_RE = /^deco-([0-9]|[1-3][0-9])$/;
+    const GARDEN_DECO_CELL_IDS = Array.from({ length: GARDEN_DECO_CELLS }, (_, index) => `deco-${index}`);
+    const OLD_TO_CURRENT_GARDEN_DECO_CELLS = {
+      "deco-0": "deco-8",
+      "deco-1": "deco-9",
+      "deco-2": "deco-10",
+      "deco-3": "deco-11",
+      "deco-4": "deco-12",
+      "deco-5": "deco-15",
+      "deco-6": "deco-16",
+      "deco-7": "deco-19",
+      "deco-8": "deco-20",
+      "deco-9": "deco-23",
+      "deco-10": "deco-24",
+      "deco-11": "deco-27",
+      "deco-12": "deco-28",
+      "deco-13": "deco-29",
+      "deco-14": "deco-30",
+      "deco-15": "deco-31"
+    };
     const ITEM_RARITIES = {
       common: { label: "ふつう", color: "" },
       uncommon: { label: "ときどき", color: "#94b46a" },
@@ -3890,6 +3915,7 @@ JSON形式:
 
     function defaultGarden() {
       return {
+        gridVersion: GARDEN_GRID_VERSION,
         xp: 0,
         fast: false,
         openingGiftAt: 0,
@@ -3911,6 +3937,7 @@ JSON形式:
     function normalizeGarden(raw) {
       const garden = defaultGarden();
       if (!raw || typeof raw !== "object") return garden;
+      const migrateGrid = gardenNeedsGridMigration(raw);
       garden.xp = clampInt(raw.xp, 0, 9999999, 0);
       garden.fast = raw.fast === true;
       garden.openingGiftAt = Number(raw.openingGiftAt) || 0;
@@ -3953,8 +3980,9 @@ JSON形式:
       }
       if (raw.decoPlaced && typeof raw.decoPlaced === "object") {
         Object.entries(raw.decoPlaced).forEach(([cellId, key]) => {
-          if (/^deco-([0-9]|1[0-5])$/.test(cellId) && GARDEN_DECOS[key]) {
-            garden.decoPlaced[cellId] = key;
+          const normalizedCellId = migrateGrid ? migrateGardenDecoCellId(String(cellId)) : String(cellId);
+          if (isGardenDecoCellId(normalizedCellId) && GARDEN_DECOS[key]) {
+            garden.decoPlaced[normalizedCellId] = key;
           }
         });
       }
@@ -3962,15 +3990,31 @@ JSON形式:
       garden.catName = asShortText(raw.catName) || "";
       garden.catFriendship = clampInt(raw.catFriendship, 0, 999, 0);
       garden.catNextVisitAt = Number(raw.catNextVisitAt) || 0;
-      if (raw.cat && typeof raw.cat === "object" && /^deco-([0-9]|1[0-5])$/.test(String(raw.cat.cellId))) {
-        garden.cat = {
-          cellId: String(raw.cat.cellId),
-          leaveAt: Number(raw.cat.leaveAt) || 0,
-          moveAt: Number(raw.cat.moveAt) || 0,
-          giftAt: Number(raw.cat.giftAt) || 0
-        };
+      if (raw.cat && typeof raw.cat === "object") {
+        const cellId = migrateGrid ? migrateGardenDecoCellId(String(raw.cat.cellId)) : String(raw.cat.cellId);
+        if (isGardenDecoCellId(cellId)) {
+          garden.cat = {
+            cellId,
+            leaveAt: Number(raw.cat.leaveAt) || 0,
+            moveAt: Number(raw.cat.moveAt) || 0,
+            giftAt: Number(raw.cat.giftAt) || 0
+          };
+        }
       }
       return garden;
+    }
+
+    function gardenNeedsGridMigration(raw) {
+      if (!raw || typeof raw !== "object") return false;
+      return (Number(raw.gridVersion) || 1) < GARDEN_GRID_VERSION;
+    }
+
+    function migrateGardenDecoCellId(cellId) {
+      return OLD_TO_CURRENT_GARDEN_DECO_CELLS[cellId] || cellId;
+    }
+
+    function isGardenDecoCellId(cellId) {
+      return GARDEN_DECO_CELL_RE.test(String(cellId));
     }
 
     function normalizeGardenPlant(raw) {
@@ -4103,7 +4147,7 @@ JSON形式:
     }
 
     function pickCatCell(exclude) {
-      const all = Array.from({ length: 16 }, (_, index) => `deco-${index}`);
+      const all = GARDEN_DECO_CELL_IDS;
       const beds = all.filter((cellId) => state.garden.decoPlaced[cellId] === "nekobed" && cellId !== exclude);
       if (beds.length && Math.random() < 0.75) {
         return beds[Math.floor(Math.random() * beds.length)];
@@ -4216,10 +4260,10 @@ JSON形式:
       const unlocked = unlockedPlotCount();
       const now = Date.now();
       let decoIndex = 0;
-      for (let row = 0; row < 5; row += 1) {
-        for (let col = 0; col < 5; col += 1) {
-          if (row >= 1 && row <= 3 && col >= 1 && col <= 3) {
-            const plotIndex = (row - 1) * 3 + (col - 1);
+      for (let row = 0; row < GARDEN_BOARD_SIZE; row += 1) {
+        for (let col = 0; col < GARDEN_BOARD_SIZE; col += 1) {
+          if (isGardenPlotCell(row, col)) {
+            const plotIndex = gardenPlotIndex(row, col);
             el.gardenBoard.append(plotTileElement(state.garden.plots[plotIndex], plotIndex, unlocked, now));
           } else {
             el.gardenBoard.append(grassCellElement(decoIndex));
@@ -4229,12 +4273,21 @@ JSON形式:
       }
     }
 
+    function isGardenPlotCell(row, col) {
+      const plotEnd = GARDEN_PLOT_OFFSET + GARDEN_PLOT_SIZE;
+      return row >= GARDEN_PLOT_OFFSET && row < plotEnd && col >= GARDEN_PLOT_OFFSET && col < plotEnd;
+    }
+
+    function gardenPlotIndex(row, col) {
+      return (row - GARDEN_PLOT_OFFSET) * GARDEN_PLOT_SIZE + (col - GARDEN_PLOT_OFFSET);
+    }
+
     const ISO_TILE_W = 96;
     const ISO_TILE_H = 48;
-    const ISO_VIEW_W = 560;
-    const ISO_VIEW_H = 396;
-    const ISO_ORIGIN_X = 280;
-    const ISO_ORIGIN_Y = 88;
+    const ISO_VIEW_W = 744;
+    const ISO_VIEW_H = 492;
+    const ISO_ORIGIN_X = 372;
+    const ISO_ORIGIN_Y = 64;
 
     function isoCellCenter(col, row) {
       return {
@@ -4263,12 +4316,12 @@ JSON形式:
       const parts = [];
       const cells = [];
       let decoIndex = 0;
-      for (let row = 0; row < 5; row += 1) {
-        for (let col = 0; col < 5; col += 1) {
-          const isPlot = row >= 1 && row <= 3 && col >= 1 && col <= 3;
+      for (let row = 0; row < GARDEN_BOARD_SIZE; row += 1) {
+        for (let col = 0; col < GARDEN_BOARD_SIZE; col += 1) {
+          const isPlot = isGardenPlotCell(row, col);
           const cell = { col, row, isPlot };
           if (isPlot) {
-            cell.plotIndex = (row - 1) * 3 + (col - 1);
+            cell.plotIndex = gardenPlotIndex(row, col);
           } else {
             cell.cellId = `deco-${decoIndex}`;
             decoIndex += 1;
@@ -6399,7 +6452,12 @@ JSON形式:
 
         const idbGarden = await idbGet(LS_GARDEN);
         const localGarden = readLocalJson(LS_GARDEN);
-        state.garden = normalizeGarden(idbGarden || localGarden);
+        const rawGarden = idbGarden || localGarden;
+        const gardenGridMigrated = gardenNeedsGridMigration(rawGarden);
+        state.garden = normalizeGarden(rawGarden);
+        if (gardenGridMigrated && idbGarden) {
+          await idbSet(LS_GARDEN, state.garden);
+        }
         if (!idbGarden && localGarden) {
           await idbSet(LS_GARDEN, state.garden);
           localStorage.removeItem(LS_GARDEN);
@@ -6413,11 +6471,13 @@ JSON形式:
         const idbHanacho = storageDb ? normalizeHanacho(await idbGet(LS_HANACHO).catch(() => null)) : [];
         const idbMemos = storageDb ? normalizeMemos(await idbGet(LS_MEMOS).catch(() => null)) : [];
         const idbGarden = storageDb ? await idbGet(LS_GARDEN).catch(() => null) : null;
+        const rawGarden = idbGarden || readLocalJson(LS_GARDEN);
         state.storageMode = "localStorage";
         state.storageError = "IndexedDBへの引っ越しができへんかった。旧データは消さず、localStorageのまま動く。";
         state.hanacho = idbHanacho.length ? idbHanacho : loadHanacho();
         state.memos = idbMemos.length ? idbMemos : loadMemos();
-        state.garden = normalizeGarden(idbGarden || readLocalJson(LS_GARDEN));
+        state.garden = normalizeGarden(rawGarden);
+        if (gardenNeedsGridMigration(rawGarden)) safeSetLocalJson(LS_GARDEN, state.garden);
       }
     }
 
