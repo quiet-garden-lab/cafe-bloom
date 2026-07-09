@@ -1092,19 +1092,19 @@
 
     /* テーマ別: 箱庭ビューの下地(SVG背景と同じ色でつなぐ) */
     html[data-theme="garden"] .garden-board.is-iso {
-      background: linear-gradient(180deg, #1c1230 0%, #2a1c46 48%, #3a2650 82%, #46305a 100%);
+      background: linear-gradient(180deg, #1c1230 0%, #2a1c46 32%, #362450 42%, #28372a 46%, #1a241c 100%);
       border-color: rgba(164, 130, 201, 0.5);
       box-shadow: inset 0 0 60px rgba(10, 6, 24, 0.5);
     }
 
     html:not([data-theme]) .garden-board.is-iso {
-      background: linear-gradient(180deg, #201612 0%, #2a1d14 52%, #35251a 82%, #40301f 100%);
+      background: linear-gradient(180deg, #201612 0%, #2a1d14 32%, #35251a 42%, #38281a 46%, #22150a 100%);
       border-color: rgba(230, 200, 150, 0.35);
       box-shadow: inset 0 0 60px rgba(16, 10, 6, 0.5);
     }
 
     html[data-theme="diner"] .garden-board.is-iso {
-      background: linear-gradient(180deg, #131120 0%, #1c1630 52%, #2a1c34 82%, #38222f 100%);
+      background: linear-gradient(180deg, #131120 0%, #1c1630 32%, #2a1c34 42%, #28222e 46%, #181320 100%);
       border-color: rgba(255, 140, 120, 0.35);
       box-shadow: inset 0 0 60px rgba(8, 6, 18, 0.55);
     }
@@ -1829,7 +1829,7 @@
     <header class="topbar">
       <div class="brand">
         <h1>Cafe Bloom — 花帖喫茶 —</h1>
-        <p id="brandTagline">好きなだけ喋って、一番の重心から一輪咲かせる / v0.16.0 三つの夜</p>
+        <p id="brandTagline">好きなだけ喋って、一番の重心から一輪咲かせる / v0.16.1 大地に降りた畑</p>
       </div>
       <nav class="nav" aria-label="画面">
         <button type="button" data-nav="cafe">喫茶店</button>
@@ -2144,7 +2144,7 @@
   </div>
 
   <script>
-    const APP_VERSION = "v0.16.0";
+    const APP_VERSION = "v0.16.1";
     // EDITION: "full"=製品版 / "free"=無料版（0円配布用）。
     // 無料版ファイルは tools/make-free-edition.ps1 で生成する（この行を差し替えるだけ）。
     // 軸の整理: EDITION=量の制限、APIキーの有無=AI機能のON/OFF。別軸で扱う。
@@ -4380,6 +4380,14 @@ JSON形式:
             <stop offset="65%" stop-color="#100c1e" stop-opacity="0.3"/>
             <stop offset="100%" stop-color="#100c1e" stop-opacity="0"/>
           </radialGradient>
+          <linearGradient id="cbNgGroundFill" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stop-color="#28372a"/>
+            <stop offset="100%" stop-color="#1a241c"/>
+          </linearGradient>
+          <linearGradient id="cbNgPlate" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stop-color="#2f3f31"/>
+            <stop offset="100%" stop-color="#202c22"/>
+          </linearGradient>
         </defs>
         <g fill="#fff2d7">
           <circle cx="46" cy="44" r="1.3" opacity="0.7"/>
@@ -4484,8 +4492,27 @@ JSON形式:
           </rect>
           <rect x="720" y="196" width="2.4" height="3.4" rx="0.8"/>
         </g>
+        <path d="M-4 212 C120 198 250 208 372 204 C500 200 630 210 748 198 L748 496 L-4 496 Z" fill="url(#cbNgGroundFill)"/>
+        <path d="M-4 212 C120 198 250 208 372 204 C500 200 630 210 748 198" fill="none" stroke="#8b7fa8" stroke-width="1.2" opacity="0.2"/>
         <ellipse cx="372" cy="232" rx="310" ry="150" fill="url(#cbNgHaze)"/>
-        <ellipse cx="372" cy="366" rx="340" ry="72" fill="url(#cbNgGround)"/>
+        <ellipse cx="372" cy="368" rx="345" ry="76" fill="url(#cbNgGround)"/>
+        <path d="M372 30 L718 208 L372 386 L26 208 Z" fill="url(#cbNgPlate)" stroke="rgba(12, 20, 14, 0.55)" stroke-width="2"/>
+        <g fill="#3e5140" opacity="0.5">
+          <circle cx="240" cy="180" r="1.4"/>
+          <circle cx="480" cy="170" r="1.3"/>
+          <circle cx="160" cy="280" r="1.4"/>
+          <circle cx="580" cy="290" r="1.3"/>
+          <circle cx="300" cy="340" r="1.4"/>
+          <circle cx="452" cy="332" r="1.3"/>
+        </g>
+        <g stroke="#3c4f3e" stroke-width="2" stroke-linecap="round" fill="none" opacity="0.8">
+          <path d="M56 246 C55 240 56 236 58 233"/>
+          <path d="M70 302 C69 296 70 292 72 289"/>
+          <path d="M652 262 C653 256 652 252 650 249"/>
+          <path d="M690 322 C691 316 690 312 688 309"/>
+          <path d="M124 394 C123 388 124 384 126 381"/>
+          <path d="M624 398 C625 392 624 388 622 385"/>
+        </g>
         <g fill="#c98ba5" opacity="0.32">
           <ellipse cx="150" cy="428" rx="3" ry="1.6" transform="rotate(-24 150 428)"/>
           <ellipse cx="236" cy="452" rx="2.6" ry="1.4" transform="rotate(18 236 452)"/>
@@ -4724,6 +4751,14 @@ JSON形式:
             <stop offset="65%" stop-color="#150e08" stop-opacity="0.3"/>
             <stop offset="100%" stop-color="#150e08" stop-opacity="0"/>
           </radialGradient>
+          <linearGradient id="cbClGroundFill" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stop-color="#38281a"/>
+            <stop offset="100%" stop-color="#22150a"/>
+          </linearGradient>
+          <linearGradient id="cbClPlate" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stop-color="#40301d"/>
+            <stop offset="100%" stop-color="#2b1d10"/>
+          </linearGradient>
         </defs>
         <g fill="#fff2d7">
           <circle cx="220" cy="30" r="0.9" opacity="0.4"/>
@@ -4782,9 +4817,56 @@ JSON形式:
             <animate attributeName="opacity" values="1;0.7;1;0.85;1" dur="3.8s" repeatCount="indefinite"/>
           </circle>
         </g>
-        <ellipse cx="30" cy="310" rx="110" ry="150" fill="url(#cbClGlow)"/>
+        <path d="M-4 212 C120 198 250 208 372 204 C500 200 630 210 748 198 L748 496 L-4 496 Z" fill="url(#cbClGroundFill)"/>
+        <path d="M-4 212 C120 198 250 208 372 204 C500 200 630 210 748 198" fill="none" stroke="#e8c87e" stroke-width="1.2" opacity="0.14"/>
+        <g>
+          <rect x="-4" y="88" width="160" height="12" fill="#241812"/>
+          <rect x="-4" y="100" width="152" height="108" fill="#2e2013"/>
+          <rect x="8" y="106" width="134" height="16" fill="#f6efe3"/>
+          <rect x="22" y="106" width="18" height="16" fill="#a04a38"/>
+          <rect x="58" y="106" width="18" height="16" fill="#a04a38"/>
+          <rect x="94" y="106" width="18" height="16" fill="#a04a38"/>
+          <rect x="126" y="106" width="16" height="16" fill="#a04a38"/>
+          <path d="M8 122 a8 8 0 0 0 16 0Z" fill="#f6efe3"/>
+          <path d="M24 122 a8 8 0 0 0 16 0Z" fill="#a04a38"/>
+          <path d="M40 122 a8 8 0 0 0 16 0Z" fill="#f6efe3"/>
+          <path d="M56 122 a8 8 0 0 0 16 0Z" fill="#a04a38"/>
+          <path d="M72 122 a8 8 0 0 0 16 0Z" fill="#f6efe3"/>
+          <path d="M88 122 a8 8 0 0 0 16 0Z" fill="#a04a38"/>
+          <path d="M104 122 a8 8 0 0 0 16 0Z" fill="#f6efe3"/>
+          <path d="M120 122 a8 8 0 0 0 16 0Z" fill="#a04a38"/>
+          <path d="M24 200 L24 156 Q24 142 44 142 Q64 142 64 156 L64 200 Z" fill="#ffd9a0" opacity="0.5">
+            <animate attributeName="opacity" values="0.5;0.58;0.5;0.55;0.5" dur="5.5s" repeatCount="indefinite"/>
+          </path>
+          <path d="M24 200 L24 156 Q24 142 44 142 Q64 142 64 156 L64 200 Z" fill="none" stroke="#241812" stroke-width="2"/>
+          <path d="M44 142 L44 200 M24 170 L64 170" stroke="#241812" stroke-width="2"/>
+          <path d="M86 200 L86 156 Q86 142 106 142 Q126 142 126 156 L126 200 Z" fill="#ffd9a0" opacity="0.5">
+            <animate attributeName="opacity" values="0.5;0.56;0.5;0.6;0.5" dur="6.3s" begin="-2s" repeatCount="indefinite"/>
+          </path>
+          <path d="M86 200 L86 156 Q86 142 106 142 Q126 142 126 156 L126 200 Z" fill="none" stroke="#241812" stroke-width="2"/>
+          <path d="M106 142 L106 200 M86 170 L126 170" stroke="#241812" stroke-width="2"/>
+          <path d="M150 96 L166 96 L166 100 L162 100 L162 112" fill="none" stroke="#241812" stroke-width="2.4"/>
+          <rect x="152" y="112" width="20" height="16" rx="3" fill="#3a2a18" stroke="#241812" stroke-width="1.4"/>
+          <rect x="156" y="116" width="9" height="7" rx="2" fill="#f6efe3"/>
+          <path d="M165 117 C169 117 169 122 165 122" fill="none" stroke="#f6efe3" stroke-width="1.4"/>
+          <ellipse cx="75" cy="216" rx="95" ry="16" fill="#f3ca7a" opacity="0.1"/>
+        </g>
         <ellipse cx="372" cy="235" rx="300" ry="140" fill="url(#cbClGlow)"/>
-        <ellipse cx="372" cy="366" rx="340" ry="72" fill="url(#cbClGround)"/>
+        <ellipse cx="372" cy="368" rx="345" ry="76" fill="url(#cbClGround)"/>
+        <path d="M372 30 L718 208 L372 386 L26 208 Z" fill="url(#cbClPlate)" stroke="rgba(24, 14, 6, 0.55)" stroke-width="2"/>
+        <g fill="#4a3722" opacity="0.55">
+          <ellipse cx="250" cy="180" rx="10" ry="4"/>
+          <ellipse cx="470" cy="172" rx="9" ry="3.6"/>
+          <ellipse cx="170" cy="278" rx="10" ry="4"/>
+          <ellipse cx="570" cy="288" rx="9" ry="3.6"/>
+          <ellipse cx="310" cy="338" rx="10" ry="4"/>
+          <ellipse cx="450" cy="330" rx="9" ry="3.6"/>
+        </g>
+        <g>
+          <path d="M188 486 L200 450 L212 486" fill="none" stroke="#3a2a18" stroke-width="3"/>
+          <rect x="190" y="454" width="20" height="24" rx="2" fill="#f6efe3" stroke="#b7a98e" stroke-width="1.4" transform="rotate(-3 200 466)"/>
+          <path d="M194 461 h12 M194 466 h12 M194 471 h8" stroke="#8a7a5e" stroke-width="1.2" transform="rotate(-3 200 466)"/>
+        </g>
         <g fill="#f2b7d8" opacity="0.28">
           <ellipse cx="170" cy="430" rx="2.8" ry="1.5" transform="rotate(-18 170 430)"/>
           <ellipse cx="290" cy="452" rx="2.4" ry="1.3" transform="rotate(14 290 452)"/>
@@ -4937,6 +5019,14 @@ JSON形式:
             <stop offset="65%" stop-color="#0c0a16" stop-opacity="0.32"/>
             <stop offset="100%" stop-color="#0c0a16" stop-opacity="0"/>
           </radialGradient>
+          <linearGradient id="cbDnGroundFill" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stop-color="#28222e"/>
+            <stop offset="100%" stop-color="#181320"/>
+          </linearGradient>
+          <linearGradient id="cbDnPlate" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stop-color="#2e2836"/>
+            <stop offset="100%" stop-color="#1f1926"/>
+          </linearGradient>
         </defs>
         <g fill="#fff2d7">
           <circle cx="60" cy="40" r="1.2" opacity="0.6"/>
@@ -4969,9 +5059,23 @@ JSON形式:
           <animate attributeName="opacity" values="0; 0.8; 0; 0" keyTimes="0; 0.035; 0.075; 1" dur="31s" repeatCount="indefinite"/>
         </g>
         <path d="M540 30 A22 22 0 1 0 566 62 A17 17 0 1 1 540 30Z" fill="#f3ca7a" transform="rotate(-14 550 46)"/>
+        <path d="M-4 212 C120 198 250 208 372 204 C500 200 630 210 748 198 L748 496 L-4 496 Z" fill="url(#cbDnGroundFill)"/>
+        <path d="M-4 212 C120 198 250 208 372 204 C500 200 630 210 748 198" fill="none" stroke="#ff8c78" stroke-width="1.2" opacity="0.16"/>
+        <path d="M-4 222 C160 208 560 208 748 210 L748 236 C560 232 160 234 -4 250 Z" fill="#16121c" opacity="0.85"/>
+        <path d="M-4 236 C160 221 560 220 748 223" fill="none" stroke="#d9cdbb" stroke-width="2" stroke-dasharray="14 12" opacity="0.25"/>
         <ellipse cx="372" cy="250" rx="320" ry="130" fill="url(#cbDnNeonR)"/>
         <ellipse cx="190" cy="280" rx="180" ry="90" fill="url(#cbDnNeonT)"/>
-        <ellipse cx="372" cy="366" rx="340" ry="72" fill="url(#cbDnGround)"/>
+        <ellipse cx="372" cy="368" rx="345" ry="76" fill="url(#cbDnGround)"/>
+        <path d="M372 30 L718 208 L372 386 L26 208 Z" fill="url(#cbDnPlate)" stroke="rgba(10, 8, 16, 0.6)" stroke-width="2"/>
+        <g fill="#3a3344" opacity="0.55">
+          <circle cx="245" cy="182" r="1.5"/>
+          <circle cx="475" cy="172" r="1.4"/>
+          <circle cx="165" cy="280" r="1.5"/>
+          <circle cx="575" cy="290" r="1.4"/>
+          <circle cx="305" cy="340" r="1.5"/>
+          <circle cx="455" cy="332" r="1.4"/>
+        </g>
+        <rect x="639" y="80" width="5" height="126" rx="2" fill="#241d28"/>
         <g>
           <rect x="596" y="42" width="94" height="40" rx="9" fill="rgba(16, 12, 24, 0.6)" stroke="#ff6a5e" stroke-width="4" opacity="0.25"/>
           <rect x="600" y="46" width="86" height="32" rx="7" fill="rgba(16, 12, 24, 0.75)" stroke="#ff6a5e" stroke-width="1.8"/>
