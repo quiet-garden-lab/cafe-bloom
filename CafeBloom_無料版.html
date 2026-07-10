@@ -1113,6 +1113,11 @@
       position: relative;
     }
 
+    /* 2×2の大物装飾が盤面上端で切れないように(はみ出しは枠の余白12pxに収まる) */
+    .garden-board.is-iso #isoBoard {
+      overflow: visible;
+    }
+
     /* 空気の層(蛍・光の粒)。盤面の描き直しと切り離して、アニメーションを止めない */
     .iso-ambient-layer {
       position: absolute;
@@ -1243,6 +1248,17 @@
       width: 94%;
       height: 94%;
       pointer-events: none;
+    }
+
+    .grass-cell--big {
+      overflow: visible;
+      z-index: 3;
+    }
+
+    .grass-cell--big svg {
+      transform: scale(1.9);
+      transform-origin: center bottom;
+      filter: drop-shadow(0 4px 6px rgba(0, 0, 0, 0.35));
     }
 
     .grass-cell .cat-sprite {
@@ -1829,7 +1845,7 @@
     <header class="topbar">
       <div class="brand">
         <h1>Cafe Bloom — 花帖喫茶 —</h1>
-        <p id="brandTagline">好きなだけ喋って、一番の重心から一輪咲かせる / v0.17.1 ひときわ光る</p>
+        <p id="brandTagline">好きなだけ喋って、一番の重心から一輪咲かせる / v0.18.0 でっかいとっておき</p>
       </div>
       <nav class="nav" aria-label="画面">
         <button type="button" data-nav="cafe">喫茶店</button>
@@ -2144,7 +2160,7 @@
   </div>
 
   <script>
-    const APP_VERSION = "v0.17.1";
+    const APP_VERSION = "v0.18.0";
     // EDITION: "full"=製品版 / "free"=無料版（0円配布用）。
     // 無料版ファイルは tools/make-free-edition.ps1 で生成する（この行を差し替えるだけ）。
     // 軸の整理: EDITION=量の制限、APIキーの有無=AI機能のON/OFF。別軸で扱う。
@@ -2543,7 +2559,8 @@
         flavor: "水面の上に、小さな虹がずっとかかっている。",
         cost: { petals: 6, mitsu: 2, shizuku: 1, niji: 1 },
         ground: 106,
-        size: 86,
+        size: 150,
+        footprint: 2,
         svg: `<svg viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
           <defs>
             <radialGradient id="cbNzGlow">
@@ -2694,7 +2711,8 @@
         theme: "garden",
         cost: { petals: 14, mitsu: 3, shizuku: 2, niji: 1 },
         ground: 116,
-        size: 94,
+        size: 150,
+        footprint: 2,
         svg: `<svg viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
           <defs>
             <radialGradient id="cbAzGlow">
@@ -4339,10 +4357,17 @@ JSON形式:
         });
       }
       if (raw.decoPlaced && typeof raw.decoPlaced === "object") {
+        const decoOccupancy = new Map();
         Object.entries(raw.decoPlaced).forEach(([cellId, key]) => {
           const normalizedCellId = migrateGrid ? migrateGardenDecoCellId(String(cellId)) : String(cellId);
           if (isGardenDecoCellId(normalizedCellId) && GARDEN_DECOS[key]) {
+            const footprintCells = decoFootprintCells(normalizedCellId, decoFootprint(key));
+            if (!footprintCells || footprintCells.some((occupiedCellId) => decoOccupancy.has(occupiedCellId))) {
+              garden.decoOwned[key] = (garden.decoOwned[key] || 0) + 1;
+              return;
+            }
             garden.decoPlaced[normalizedCellId] = key;
+            footprintCells.forEach((occupiedCellId) => decoOccupancy.set(occupiedCellId, normalizedCellId));
           }
         });
       }
@@ -4508,12 +4533,14 @@ JSON形式:
 
     function pickCatCell(exclude) {
       const all = GARDEN_DECO_CELL_IDS;
+      const occupancy = buildDecoOccupancy();
       const beds = all.filter((cellId) => state.garden.decoPlaced[cellId] === "nekobed" && cellId !== exclude);
       if (beds.length && Math.random() < 0.75) {
         return beds[Math.floor(Math.random() * beds.length)];
       }
-      const empty = all.filter((cellId) => !state.garden.decoPlaced[cellId] && cellId !== exclude);
-      const pool = empty.length ? empty : all.filter((cellId) => cellId !== exclude);
+      const available = all.filter((cellId) => !occupancy.has(cellId));
+      const empty = available.filter((cellId) => cellId !== exclude);
+      const pool = empty.length ? empty : available;
       return pool[Math.floor(Math.random() * pool.length)] || "deco-0";
     }
 
@@ -4634,18 +4661,14 @@ JSON形式:
       el.gardenBoard.textContent = "";
       const unlocked = unlockedPlotCount();
       const now = Date.now();
-      let decoIndex = 0;
-      for (let row = 0; row < GARDEN_BOARD_SIZE; row += 1) {
-        for (let col = 0; col < GARDEN_BOARD_SIZE; col += 1) {
-          if (isGardenPlotCell(row, col)) {
-            const plotIndex = gardenPlotIndex(row, col);
-            el.gardenBoard.append(plotTileElement(state.garden.plots[plotIndex], plotIndex, unlocked, now));
-          } else {
-            el.gardenBoard.append(grassCellElement(decoIndex));
-            decoIndex += 1;
-          }
+      const occupancy = buildDecoOccupancy();
+      gardenBoardCells().forEach((cell) => {
+        if (cell.isPlot) {
+          el.gardenBoard.append(plotTileElement(state.garden.plots[cell.plotIndex], cell.plotIndex, unlocked, now));
+        } else {
+          el.gardenBoard.append(grassCellElement(cell.cellId, occupancy));
         }
-      }
+      });
     }
 
     function isGardenPlotCell(row, col) {
@@ -4655,6 +4678,125 @@ JSON形式:
 
     function gardenPlotIndex(row, col) {
       return (row - GARDEN_PLOT_OFFSET) * GARDEN_PLOT_SIZE + (col - GARDEN_PLOT_OFFSET);
+    }
+
+    function gardenBoardCells() {
+      const cells = [];
+      let decoIndex = 0;
+      for (let row = 0; row < GARDEN_BOARD_SIZE; row += 1) {
+        for (let col = 0; col < GARDEN_BOARD_SIZE; col += 1) {
+          const isPlot = isGardenPlotCell(row, col);
+          const cell = { col, row, isPlot };
+          if (isPlot) {
+            cell.plotIndex = gardenPlotIndex(row, col);
+          } else {
+            cell.decoIndex = decoIndex;
+            cell.cellId = `deco-${decoIndex}`;
+            decoIndex += 1;
+          }
+          cells.push(cell);
+        }
+      }
+      return cells;
+    }
+
+    function gardenDecoCellCoord(cellId) {
+      const match = String(cellId).match(GARDEN_DECO_CELL_RE);
+      if (!match) return null;
+      const targetIndex = Number(match[1]);
+      return gardenBoardCells()
+        .filter((cell) => !cell.isPlot)
+        .map((cell) => ({ cellId: cell.cellId, row: cell.row, col: cell.col }))
+        .find((cell) => cell.cellId === `deco-${targetIndex}`) || null;
+    }
+
+    function gardenDecoCellIdAt(row, col) {
+      if (row < 0 || row >= GARDEN_BOARD_SIZE || col < 0 || col >= GARDEN_BOARD_SIZE) return null;
+      if (isGardenPlotCell(row, col)) return null;
+      const cell = gardenBoardCells().find((candidate) => !candidate.isPlot && candidate.row === row && candidate.col === col);
+      return cell ? cell.cellId : null;
+    }
+
+    function decoFootprint(keyOrDeco) {
+      const deco = typeof keyOrDeco === "string" ? GARDEN_DECOS[keyOrDeco] : keyOrDeco;
+      return deco && deco.footprint === 2 ? 2 : 1;
+    }
+
+    function decoFootprintCells(anchorCellId, footprint = 1) {
+      const anchor = gardenDecoCellCoord(anchorCellId);
+      if (!anchor) return null;
+      const cells = [];
+      for (let rowOffset = 0; rowOffset < footprint; rowOffset += 1) {
+        for (let colOffset = 0; colOffset < footprint; colOffset += 1) {
+          const cellId = gardenDecoCellIdAt(anchor.row + rowOffset, anchor.col + colOffset);
+          if (!cellId) return null;
+          cells.push(cellId);
+        }
+      }
+      return cells;
+    }
+
+    function buildDecoOccupancy(placed = state.garden.decoPlaced) {
+      const occupancy = new Map();
+      Object.entries(placed || {}).forEach(([anchorCellId, key]) => {
+        if (!GARDEN_DECOS[key]) return;
+        const cells = decoFootprintCells(anchorCellId, decoFootprint(key));
+        if (!cells || cells.some((cellId) => occupancy.has(cellId))) return;
+        cells.forEach((cellId) => occupancy.set(cellId, anchorCellId));
+      });
+      return occupancy;
+    }
+
+    function decoAnchorForCell(cellId, occupancy = buildDecoOccupancy()) {
+      return occupancy.get(cellId) || (isGardenDecoCellId(cellId) ? cellId : null);
+    }
+
+    function decoAnchorCandidatesForCell(cellId, footprint) {
+      const coord = gardenDecoCellCoord(cellId);
+      if (!coord) return [];
+      const offsets = footprint > 1
+        ? [[0, 0], [0, -1], [-1, 0], [-1, -1]]
+        : [[0, 0]];
+      const seen = new Set();
+      return offsets.map(([rowOffset, colOffset]) => gardenDecoCellIdAt(coord.row + rowOffset, coord.col + colOffset))
+        .filter((candidate) => {
+          if (!candidate || seen.has(candidate)) return false;
+          seen.add(candidate);
+          return true;
+        });
+    }
+
+    function findPlaceableDecoAnchor(cellId, key) {
+      const deco = GARDEN_DECOS[key];
+      if (!deco) return null;
+      const footprint = decoFootprint(deco);
+      const occupancy = buildDecoOccupancy();
+      const candidates = decoAnchorCandidatesForCell(cellId, footprint);
+      return candidates.find((anchorCellId) => {
+        const cells = decoFootprintCells(anchorCellId, footprint);
+        return cells && cells.every((occupiedCellId) => !occupancy.has(occupiedCellId) && !state.garden.decoPlaced[occupiedCellId]);
+      }) || null;
+    }
+
+    function decoFrontCellId(anchorCellId, footprint) {
+      const cells = decoFootprintCells(anchorCellId, footprint);
+      return cells ? cells[cells.length - 1] : anchorCellId;
+    }
+
+    function decoIsoCenter(anchorCellId, footprint) {
+      const cells = decoFootprintCells(anchorCellId, footprint);
+      if (!cells) return null;
+      const total = cells.reduce((point, cellId) => {
+        const coord = gardenDecoCellCoord(cellId);
+        const center = isoCellCenter(coord.col, coord.row);
+        point.x += center.x;
+        point.y += center.y;
+        return point;
+      }, { x: 0, y: 0 });
+      return {
+        x: total.x / cells.length,
+        y: total.y / cells.length
+      };
     }
 
     const ISO_TILE_W = 96;
@@ -5535,23 +5677,10 @@ JSON形式:
       const unlocked = unlockedPlotCount();
       const now = Date.now();
       const parts = [];
-      const cells = [];
-      let decoIndex = 0;
-      for (let row = 0; row < GARDEN_BOARD_SIZE; row += 1) {
-        for (let col = 0; col < GARDEN_BOARD_SIZE; col += 1) {
-          const isPlot = isGardenPlotCell(row, col);
-          const cell = { col, row, isPlot };
-          if (isPlot) {
-            cell.plotIndex = gardenPlotIndex(row, col);
-          } else {
-            cell.cellId = `deco-${decoIndex}`;
-            decoIndex += 1;
-          }
-          cells.push(cell);
-        }
-      }
+      const occupancy = buildDecoOccupancy();
+      const cells = gardenBoardCells();
       cells.sort((a, b) => (a.col + a.row) - (b.col + b.row) || a.row - b.row);
-      cells.forEach((cell) => parts.push(isoCellMarkup(cell, unlocked, now)));
+      cells.forEach((cell) => parts.push(isoCellMarkup(cell, unlocked, now, occupancy)));
       // 蛍の層(.iso-ambient-layer)を巻き込まないよう、#isoBoardだけ差し替える。
       // innerHTMLで全部作り直すとSVGアニメーションが毎回リセットされて「蛍がフッと消える」
       const boardMarkup = `<svg id="isoBoard" viewBox="0 0 ${ISO_VIEW_W} ${ISO_VIEW_H}" xmlns="http://www.w3.org/2000/svg" role="group" aria-label="箱庭の畑">${isoThemeBackdrop()}${parts.join("")}</svg>`;
@@ -5573,13 +5702,16 @@ JSON形式:
       });
     }
 
-    function isoCellMarkup(cell, unlocked, now) {
+    function isoCellMarkup(cell, unlocked, now, occupancy) {
       const { x: cx, y: cy } = isoCellCenter(cell.col, cell.row);
       const pieces = [];
       let hitTarget;
       let ariaLabel;
       let cellClass;
       let selected;
+      let anchorCellId = null;
+      let deco = null;
+      let footprint = 1;
 
       if (cell.isPlot) {
         const plot = state.garden.plots[cell.plotIndex];
@@ -5614,16 +5746,24 @@ JSON形式:
         }
       } else {
         const cellId = cell.cellId;
-        const key = state.garden.decoPlaced[cellId];
+        anchorCellId = occupancy.get(cellId) || null;
+        const key = anchorCellId ? state.garden.decoPlaced[anchorCellId] : "";
+        deco = key && GARDEN_DECOS[key] ? GARDEN_DECOS[key] : null;
+        footprint = deco ? decoFootprint(deco) : 1;
         const catHere = state.garden.cat && state.garden.cat.cellId === cellId;
-        hitTarget = catHere ? "cat" : cellId;
+        hitTarget = catHere ? "cat" : (anchorCellId || cellId);
         cellClass = "grass";
-        selected = cellId === state.gardenSelectedPlot || (catHere && state.gardenSelectedPlot === "cat");
+        selected = (anchorCellId && anchorCellId === state.gardenSelectedPlot)
+          || (!anchorCellId && cellId === state.gardenSelectedPlot)
+          || (catHere && state.gardenSelectedPlot === "cat");
         pieces.push(`<path class="iso-ground iso-top" d="${isoDiamondPath(cx, cy)}" fill="rgba(255, 255, 255, 0.035)" stroke="rgba(255, 255, 255, 0.05)" stroke-width="1"/>`);
         const baseY = cy + Math.round(ISO_TILE_H * 0.16);
-        if (key && GARDEN_DECOS[key]) {
-          ariaLabel = `飾り「${GARDEN_DECOS[key].name}」`;
-          pieces.push(isoEmbedSprite(GARDEN_DECOS[key].svg, cx, baseY, GARDEN_DECOS[key].size || 66, GARDEN_DECOS[key].ground || 120));
+        if (deco) {
+          ariaLabel = `飾り「${deco.name}」`;
+          if (cellId === decoFrontCellId(anchorCellId, footprint)) {
+            const decoCenter = decoIsoCenter(anchorCellId, footprint) || { x: cx, y: cy };
+            pieces.push(isoEmbedSprite(deco.svg, decoCenter.x, baseY, deco.size || 66, deco.ground || 120));
+          }
         } else {
           ariaLabel = "飾りを置ける草地";
         }
@@ -5636,7 +5776,16 @@ JSON形式:
       }
 
       if (selected) {
-        pieces.push(`<path class="iso-art" d="${isoDiamondPath(cx, cy, ISO_TILE_W + 8, ISO_TILE_H + 4)}" fill="none" stroke="var(--amber-soft)" stroke-width="2.4"/>`);
+        if (!cell.isPlot && deco && footprint > 1) {
+          if (cell.cellId === decoFrontCellId(anchorCellId, footprint)) {
+            const outlineCenter = decoIsoCenter(anchorCellId, footprint);
+            if (outlineCenter) {
+              pieces.push(`<path class="iso-art" d="${isoDiamondPath(outlineCenter.x, outlineCenter.y, ISO_TILE_W * footprint + 8, ISO_TILE_H * footprint + 4)}" fill="none" stroke="var(--amber-soft)" stroke-width="2.4"/>`);
+            }
+          }
+        } else {
+          pieces.push(`<path class="iso-art" d="${isoDiamondPath(cx, cy, ISO_TILE_W + 8, ISO_TILE_H + 4)}" fill="none" stroke="var(--amber-soft)" stroke-width="2.4"/>`);
+        }
       }
       pieces.push(`<path class="iso-hit" d="${isoDiamondPath(cx, cy)}" data-target="${hitTarget}" role="button" tabindex="0" aria-label="${escapeHtml(ariaLabel)}"/>`);
       const plotAttr = cell.isPlot ? ` data-plot-id="${state.garden.plots[cell.plotIndex].id}" data-cx="${cx}" data-cy="${cy}"` : ` data-cx="${cx}" data-cy="${cy}"`;
@@ -5780,16 +5929,21 @@ JSON形式:
       return tile;
     }
 
-    function grassCellElement(decoIndex) {
-      const cellId = `deco-${decoIndex}`;
+    function grassCellElement(cellId, occupancy = buildDecoOccupancy()) {
       const cell = document.createElement("button");
       cell.type = "button";
       cell.className = "grass-cell";
-      const key = state.garden.decoPlaced[cellId];
+      const anchorCellId = occupancy.get(cellId) || null;
+      const key = anchorCellId ? state.garden.decoPlaced[anchorCellId] : "";
+      const deco = key && GARDEN_DECOS[key] ? GARDEN_DECOS[key] : null;
+      const isAnchor = anchorCellId === cellId;
       const catHere = state.garden.cat && state.garden.cat.cellId === cellId;
-      if (key && GARDEN_DECOS[key]) {
-        cell.innerHTML = GARDEN_DECOS[key].svg;
-        cell.setAttribute("aria-label", `飾り「${GARDEN_DECOS[key].name}」`);
+      if (deco && isAnchor) {
+        cell.innerHTML = deco.svg;
+        cell.setAttribute("aria-label", `飾り「${deco.name}」`);
+        if (decoFootprint(deco) > 1) cell.classList.add("grass-cell--big");
+      } else if (deco) {
+        cell.setAttribute("aria-label", `飾り「${deco.name}」`);
       } else {
         cell.setAttribute("aria-label", "飾りを置ける草地");
       }
@@ -5802,7 +5956,7 @@ JSON形式:
         cell.classList.add("is-selected");
       }
       cell.addEventListener("click", () => {
-        state.gardenSelectedPlot = catHere ? "cat" : cellId;
+        state.gardenSelectedPlot = catHere ? "cat" : (anchorCellId || cellId);
         renderField();
       });
       return cell;
@@ -6091,7 +6245,9 @@ JSON形式:
     }
 
     function renderDecoDetail(container, heading, cellId) {
-      const placedKey = state.garden.decoPlaced[cellId];
+      const occupancy = buildDecoOccupancy();
+      const anchorCellId = occupancy.get(cellId);
+      const placedKey = anchorCellId ? state.garden.decoPlaced[anchorCellId] : "";
       if (placedKey && GARDEN_DECOS[placedKey]) {
         const deco = GARDEN_DECOS[placedKey];
         heading.textContent = `「${deco.name}」`;
@@ -6101,7 +6257,7 @@ JSON形式:
         const removeButton = document.createElement("button");
         removeButton.type = "button";
         removeButton.textContent = "ポケットにしまう";
-        removeButton.addEventListener("click", () => removeDeco(cellId));
+        removeButton.addEventListener("click", () => removeDeco(anchorCellId));
         actions.append(removeButton);
         container.append(actions);
         return;
@@ -6130,10 +6286,16 @@ JSON形式:
 
     function placeDeco(cellId, key) {
       const owned = state.garden.decoOwned[key] || 0;
-      if (!owned || state.garden.decoPlaced[cellId] || !GARDEN_DECOS[key]) return;
+      if (!owned || !GARDEN_DECOS[key]) return;
+      const anchorCellId = findPlaceableDecoAnchor(cellId, key);
+      if (!anchorCellId) {
+        if (decoFootprint(key) > 1) setNotice("ここには置けない。2×2マスの空きが要る。", "error");
+        return;
+      }
       state.garden.decoOwned[key] = owned - 1;
       if (!state.garden.decoOwned[key]) delete state.garden.decoOwned[key];
-      state.garden.decoPlaced[cellId] = key;
+      state.garden.decoPlaced[anchorCellId] = key;
+      state.gardenSelectedPlot = anchorCellId;
       addGardenXp(2);
       saveGarden();
       renderField();
@@ -6141,10 +6303,12 @@ JSON形式:
     }
 
     function removeDeco(cellId) {
-      const key = state.garden.decoPlaced[cellId];
+      const anchorCellId = decoAnchorForCell(cellId);
+      const key = anchorCellId ? state.garden.decoPlaced[anchorCellId] : "";
       if (!key) return;
-      delete state.garden.decoPlaced[cellId];
+      delete state.garden.decoPlaced[anchorCellId];
       state.garden.decoOwned[key] = (state.garden.decoOwned[key] || 0) + 1;
+      state.gardenSelectedPlot = anchorCellId;
       saveGarden();
       renderField();
       setNotice(`「${GARDEN_DECOS[key].name}」をポケットにしまった。`, "ok");
